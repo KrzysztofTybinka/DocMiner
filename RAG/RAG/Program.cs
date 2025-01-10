@@ -1,4 +1,8 @@
 
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Headers;
+
 namespace RAG
 {
     public class Program
@@ -14,6 +18,7 @@ namespace RAG
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -24,28 +29,38 @@ namespace RAG
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
 
-            var summaries = new[]
-            {
-                "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-            };
 
-            app.MapGet("/weatherforecast", (HttpContext httpContext) =>
+            app.MapPost("/testocr", async (IFormFile file) =>
             {
-                var forecast = Enumerable.Range(1, 5).Select(index =>
-                    new WeatherForecast
-                    {
-                        Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                        TemperatureC = Random.Shared.Next(-20, 55),
-                        Summary = summaries[Random.Shared.Next(summaries.Length)]
-                    })
-                    .ToArray();
-                return forecast;
-            })
-            .WithName("GetWeatherForecast")
-            .WithOpenApi();
+                if (file == null)
+                    return Results.BadRequest("No file was uploaded.");
+
+                using var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+
+                // Prepare file content for forwarding
+                var fileBytes = memoryStream.ToArray();
+                var fileContent = new ByteArrayContent(fileBytes);
+
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+
+                using var multipartContent = new MultipartFormDataContent();
+                multipartContent.Add(fileContent, "file", file.FileName);
+
+                // Send file to another app
+                var httpClient = new HttpClient();
+                var dockerAppUrl = "http://host.docker.internal:8081/ocr";
+                var response = await httpClient.PostAsync(dockerAppUrl, multipartContent);
+
+                if (!response.IsSuccessStatusCode)
+                    return Results.StatusCode((int)response.StatusCode);
+
+                var textFromFil = await response.Content.ReadAsStringAsync();
+
+                return Results.Ok();
+            }).DisableAntiforgery();
 
             app.Run();
         }

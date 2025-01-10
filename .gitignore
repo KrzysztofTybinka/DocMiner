@@ -33,6 +33,46 @@ csharp-api/*.csproj.user
 csharp-api/.vscode/
 csharp-api/appsettings.Development.json
 
+### Visual Studio ###
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+### Build Results ###
+bin/
+obj/
+debug/
+release/
+
+### NuGet ###
+*.nupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+### ASP.NET ###
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+App_Data/
+
+### Others ###
+*.log
+*.cache
+*.pdb
+*.pidb
+*.svclog
+*.suo
+*.unsuccessfulbuild
+*.userprefs
+*.ilk
+*.obj
+*.ldf
+*.mdf
+
 # Visual Studio Code settings
 .vscode/
 

@@ -1,0 +1,27 @@
+version: '3.9'
+services:
+  ocr:
+    build:
+      context: ./OCR
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    networks:
+      - app-network
+
+  rag:
+    build:
+      context: ./RAG
+      dockerfile: ./RAG/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ocr
+    environment:
+      - OCR_URL=http://ocr:8081 # Pass ocr URL as an environment variable
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

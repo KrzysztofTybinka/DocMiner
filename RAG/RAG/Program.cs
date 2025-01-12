@@ -18,6 +18,12 @@ namespace RAG
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            var tesseractUrl = builder.Configuration["OCR_URL"] ?? "http://host.docker.internal:8081";
+
+            builder.Services.AddHttpClient("ocr", client =>
+            {
+                client.BaseAddress = new Uri(tesseractUrl);
+            });
 
             var app = builder.Build();
 

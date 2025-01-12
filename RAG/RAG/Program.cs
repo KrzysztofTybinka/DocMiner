@@ -1,6 +1,8 @@
 
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
+using RAG.Common;
+using RAG.Services;
 using System.Net.Http.Headers;
 
 namespace RAG
@@ -17,6 +19,8 @@ namespace RAG
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddScoped<OcrService>();
 
             var tesseractUrl = builder.Configuration["OCR_URL"] ?? "http://host.docker.internal:8081";
 
@@ -38,34 +42,28 @@ namespace RAG
             app.UseAuthorization();
 
 
-            app.MapPost("/testocr", async (IFormFile file) =>
+            app.MapPost("/ocr", async (IFormFile file, OcrService ocrService) =>
             {
                 if (file == null)
                     return Results.BadRequest("No file was uploaded.");
 
-                using var memoryStream = new MemoryStream();
-                await file.CopyToAsync(memoryStream);
+                try
+                {
+                    var result = await ocrService.RequestOCRAsync(file);
 
-                // Prepare file content for forwarding
-                var fileBytes = memoryStream.ToArray();
-                var fileContent = new ByteArrayContent(fileBytes);
-
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-
-                using var multipartContent = new MultipartFormDataContent();
-                multipartContent.Add(fileContent, "file", file.FileName);
-
-                // Send file to another app
-                var httpClient = new HttpClient();
-                var dockerAppUrl = "http://host.docker.internal:8081/ocr";
-                var response = await httpClient.PostAsync(dockerAppUrl, multipartContent);
-
-                if (!response.IsSuccessStatusCode)
-                    return Results.StatusCode((int)response.StatusCode);
-
-                var textFromFil = await response.Content.ReadAsStringAsync();
-
-                return Results.Ok();
+                    if (result.IsSuccess)
+                    {
+                        return Results.Ok(result.Data);
+                    }
+                    else
+                    {
+                        return Results.BadRequest(result.ErrorMessage);
+                    }
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(500);
+                }
             }).DisableAntiforgery();
 
             app.Run();

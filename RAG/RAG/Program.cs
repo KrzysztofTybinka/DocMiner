@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
+using RAG.BLL.Chunking;
 using RAG.Common;
 using RAG.Services;
 using System.Net.Http.Headers;
@@ -50,6 +51,44 @@ namespace RAG
                 try
                 {
                     var result = await ocrService.RequestOCRAsync(file);
+
+                    var chunker = new Chunker(200, result.Data.Text);
+                    chunker.GetChunks();
+
+                    if (result.IsSuccess)
+                    {
+                        return Results.Ok(result.Data);
+                    }
+                    else
+                    {
+                        return Results.BadRequest(result.ErrorMessage);
+                    }
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(500);
+                }
+            }).DisableAntiforgery();
+
+            app.MapPost("/embeddings", async (IFormFile file, OcrService ocrService) =>
+            {
+                if (file == null)
+                    return Results.BadRequest("No file was uploaded.");
+
+                try
+                {
+                    //Ocr the file
+                    var result = await ocrService.RequestOCRAsync(file);
+
+                    //Clean up result? TO DO?
+
+                    //Split file into chunks
+                    var chunker = new Chunker(200, result.Data.Text);
+                    chunker.GetChunks();
+
+                    //Chunks embedding TO DO
+
+                    //Save embeddings into db TO DO
 
                     if (result.IsSuccess)
                     {

@@ -32,7 +32,11 @@ namespace RAG
                 client.BaseAddress = new Uri(tesseractUrl);
             });
 
-            builder.Services.Configure<EmbeddingModelSettings>(builder.Configuration.GetSection("EmbeddingModelSettings"));
+            builder.Services.Configure<EmbeddingModelSettings>(
+                builder.Configuration.GetSection("EmbeddingModelSettings"));
+
+            builder.Services.AddSingleton<EmbeddingFactory>();
+            builder.Services.AddSingleton<IEmbedding, OpenAIEmbeddingService>();
 
             var app = builder.Build();
 
@@ -91,8 +95,7 @@ namespace RAG
                     List<string> chunks = chunker.GetChunks();
 
                     //Get embedding service
-                    var embeddingModelSettings = app.Services.GetRequiredService<EmbeddingModelSettings>();
-                    var embeddingServiceFactory = new EmbeddingFactory(embeddingModelSettings);
+                    EmbeddingFactory embeddingServiceFactory = app.Services.GetRequiredService<EmbeddingFactory>();
                     IEmbedding embeddingModel = embeddingServiceFactory.CreateEmbeddingModel();
 
                     //Create embeddings
@@ -110,7 +113,7 @@ namespace RAG
                         return Results.BadRequest(result.ErrorMessage);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     return Results.StatusCode(500);
                 }

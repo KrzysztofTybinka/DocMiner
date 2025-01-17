@@ -6,22 +6,22 @@ namespace RAG.Services.Embedding
 {
     public class EmbeddingFactory
     {
-        private readonly EmbeddingModelSettings _embeddingModelSettings;
+        private readonly IOptions<EmbeddingModelSettings> _embeddingModelSettings;
 
-        public EmbeddingFactory(EmbeddingModelSettings embeddingModelSettings)
+        public EmbeddingFactory(IOptions<EmbeddingModelSettings> embeddingModelSettings)
         {
-            _embeddingModelSettings = embeddingModelSettings;
+            _embeddingModelSettings = embeddingModelSettings; ;
         }
 
         public IEmbedding CreateEmbeddingModel()
         {
-            switch (_embeddingModelSettings.ProviderName)
+            switch (_embeddingModelSettings.Value.ProviderName)
             {
                 case "OpenAI":
                     return new OpenAIEmbeddingService(_embeddingModelSettings);
 
                 default:
-                    throw new ArgumentException($"Model '{_embeddingModelSettings.ProviderName}' is not supported.");
+                    throw new ArgumentException($"Model '{_embeddingModelSettings.Value.ProviderName}' is not supported.");
             }
         }
     }

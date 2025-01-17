@@ -1,4 +1,5 @@
-﻿using RAG.Common;
+﻿using Microsoft.Extensions.Options;
+using RAG.Common;
 using RAG.Models;
 
 namespace RAG.Services.Embedding
@@ -7,9 +8,9 @@ namespace RAG.Services.Embedding
     {
         private readonly EmbeddingModelSettings _embeddingModelSettings;
 
-        public OpenAIEmbeddingService(EmbeddingModelSettings embeddingModelSettings)
+        public OpenAIEmbeddingService(IOptions<EmbeddingModelSettings> embeddingModelSettings)
         {
-            _embeddingModelSettings = embeddingModelSettings;
+            _embeddingModelSettings = embeddingModelSettings.Value;
         }
 
         Task<Result<List<Models.Embedding>>> IEmbedding.CreateEmbeddingsAsync(List<string> chunks)

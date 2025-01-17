@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using RAG.BLL.Chunking;
 using RAG.Common;
+using RAG.Models;
 using RAG.Services;
+using RAG.Services.Embedding;
 using System.Net.Http.Headers;
 
 namespace RAG
@@ -29,6 +31,8 @@ namespace RAG
             {
                 client.BaseAddress = new Uri(tesseractUrl);
             });
+
+            builder.Services.Configure<EmbeddingModelSettings>(builder.Configuration.GetSection("EmbeddingModelSettings"));
 
             var app = builder.Build();
 
@@ -83,12 +87,19 @@ namespace RAG
                     //Clean up result? TO DO?
 
                     //Split file into chunks
-                    var chunker = new Chunker(200, result.Data.Text);
-                    chunker.GetChunks();
+                    Chunker chunker = new(200, result.Data.Text);
+                    List<string> chunks = chunker.GetChunks();
 
-                    //Chunks embedding TO DO
+                    //Get embedding service
+                    var embeddingModelSettings = app.Services.GetRequiredService<EmbeddingModelSettings>();
+                    var embeddingServiceFactory = new EmbeddingFactory(embeddingModelSettings);
+                    IEmbedding embeddingModel = embeddingServiceFactory.CreateEmbeddingModel();
 
-                    //Save embeddings into db TO DO
+                    //Create embeddings
+                    var embeddings = embeddingModel.CreateEmbeddingsAsync(chunks);
+
+
+                    //Save embeddings into db //TO DO
 
                     if (result.IsSuccess)
                     {

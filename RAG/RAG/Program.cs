@@ -78,7 +78,7 @@ namespace RAG
                 }
             }).DisableAntiforgery();
 
-            app.MapPost("/embeddings", async (IFormFile file, OcrService ocrService) =>
+            app.MapPost("/embeddings", async (IFormFile file, int numberOfTokens, OcrService ocrService) =>
             {
                 if (file == null)
                     return Results.BadRequest("No file was uploaded.");
@@ -91,7 +91,7 @@ namespace RAG
                     //Clean up result? TO DO?
 
                     //Split file into chunks
-                    Chunker chunker = new(15, result.Data.Text);
+                    Chunker chunker = new(numberOfTokens, result.Data.Text);
                     List<string> chunks = chunker.GetChunks();
 
                     //Get embedding service

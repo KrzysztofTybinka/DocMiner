@@ -91,7 +91,7 @@ namespace RAG
                     //Clean up result? TO DO?
 
                     //Split file into chunks
-                    Chunker chunker = new(200, result.Data.Text);
+                    Chunker chunker = new(15, result.Data.Text);
                     List<string> chunks = chunker.GetChunks();
 
                     //Get embedding service

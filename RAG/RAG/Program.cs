@@ -35,8 +35,8 @@ namespace RAG
             builder.Services.Configure<EmbeddingModelSettings>(
                 builder.Configuration.GetSection("EmbeddingModelSettings"));
 
-            builder.Services.AddSingleton<EmbeddingFactory>();
-            builder.Services.AddSingleton<IEmbedding, OpenAIEmbeddingService>();
+            builder.Services.AddSingleton<EmbeddingServiceFactory>();
+            builder.Services.AddSingleton<EmbeddingService, OpenAIEmbeddingService>();
 
             var app = builder.Build();
 
@@ -95,12 +95,11 @@ namespace RAG
                     List<string> chunks = chunker.GetChunks();
 
                     //Get embedding service
-                    EmbeddingFactory embeddingServiceFactory = app.Services.GetRequiredService<EmbeddingFactory>();
-                    IEmbedding embeddingModel = embeddingServiceFactory.CreateEmbeddingModel();
+                    EmbeddingServiceFactory embeddingServiceFactory = app.Services.GetRequiredService<EmbeddingServiceFactory>();
+                    EmbeddingService embeddingModel = embeddingServiceFactory.CreateEmbeddingModel();
 
                     //Create embeddings
                     var embeddings = embeddingModel.CreateEmbeddingsAsync(chunks);
-
 
                     //Save embeddings into db //TO DO
 

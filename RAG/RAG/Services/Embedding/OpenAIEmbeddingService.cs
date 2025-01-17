@@ -4,16 +4,11 @@ using RAG.Models;
 
 namespace RAG.Services.Embedding
 {
-    public class OpenAIEmbeddingService : IEmbedding
+    public class OpenAIEmbeddingService : EmbeddingService
     {
-        private readonly EmbeddingModelSettings _embeddingModelSettings;
+        public OpenAIEmbeddingService(IOptions<EmbeddingModelSettings> embeddingModelSettings) : base(embeddingModelSettings) { }
 
-        public OpenAIEmbeddingService(IOptions<EmbeddingModelSettings> embeddingModelSettings)
-        {
-            _embeddingModelSettings = embeddingModelSettings.Value;
-        }
-
-        Task<Result<List<Models.Embedding>>> IEmbedding.CreateEmbeddingsAsync(List<string> chunks)
+        public override async Task<Result<List<Models.Embedding>>> CreateEmbeddingsAsync(List<string> chunks)
         {
             throw new NotImplementedException();
         }

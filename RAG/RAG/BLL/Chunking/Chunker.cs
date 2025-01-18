@@ -15,8 +15,8 @@ namespace RAG.BLL.Chunking
 
         public List<string> GetChunks()
         {
-            string[] splittedBySpace = _text.Split(' ');
-            string[] delimiters = new[] { ";", ",", "\n", "?", "!" };
+            string[] splittedBySpace = _text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string[] delimiters = new[] { ";", ".", "?", "!" };
             List<string> chunkedByTokenNumber = [];
 
             //Iterate over the tokens and build chunks containing at least _tokenAmount tokens
@@ -24,8 +24,8 @@ namespace RAG.BLL.Chunking
             {
                 //To keep the context we can sligtly extend token number
                 //and find the end of the sentence, but the chunk should't 
-                //exceed the amount of tokens by too much, that's why _tokenAmount * 1.4
-                if (delimiters.Any(splittedBySpace[to].Contains) || to == _tokenAmount * 1.4)
+                //exceed the amount of tokens by too much, that's why _tokenAmount * 1.2
+                if (delimiters.Any(splittedBySpace[to].Contains) || to == _tokenAmount * 1.2)
                 {
                     chunkedByTokenNumber.Add(
                         string.Join(" ", 

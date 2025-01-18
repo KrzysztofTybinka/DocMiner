@@ -78,7 +78,7 @@ namespace RAG
                 }
             }).DisableAntiforgery();
 
-            app.MapPost("/embeddings", async (IFormFile file, int numberOfTokens, OcrService ocrService) =>
+            app.MapPost("/embeddings", async (IFormFile file, OcrService ocrService, int numberOfTokens = 50) =>
             {
                 if (file == null)
                     return Results.BadRequest("No file was uploaded.");
@@ -92,7 +92,7 @@ namespace RAG
                     var result = await ocrService.RequestOCRAsync(file);
 
                     //Clean up result
-                    string cleanedResult = result.Data.Text.Replace("\r\n", "").Replace("\n", "");
+                    string cleanedResult = result.Data.Text.Replace("\r\n", " ").Replace("\n", " ");
 
                     //Split file into chunks
                     Chunker chunker = new(numberOfTokens, cleanedResult);

@@ -83,15 +83,19 @@ namespace RAG
                 if (file == null)
                     return Results.BadRequest("No file was uploaded.");
 
+                if (numberOfTokens < 50)
+                    return Results.BadRequest("Number of tokens can't be less than 50.");
+
                 try
                 {
                     //Ocr the file
                     var result = await ocrService.RequestOCRAsync(file);
 
-                    //Clean up result? TO DO?
+                    //Clean up result
+                    string cleanedResult = result.Data.Text.Replace("\r\n", "").Replace("\n", "");
 
                     //Split file into chunks
-                    Chunker chunker = new(numberOfTokens, result.Data.Text);
+                    Chunker chunker = new(numberOfTokens, cleanedResult);
                     List<string> chunks = chunker.GetChunks();
 
                     //Get embedding service

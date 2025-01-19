@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using RAG.BLL.Chunking;
 using RAG.Common;
 using RAG.Models;
+using RAG.Repository;
 using RAG.Services;
 using RAG.Services.Embedding;
 using System.Net.Http.Headers;
@@ -24,12 +25,19 @@ namespace RAG
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<OcrService>();
+            builder.Services.AddScoped<EmbeddingRepository>();
 
             var tesseractUrl = builder.Configuration["OCR_URL"] ?? "http://host.docker.internal:8081";
+            var chromaDbtUrl = builder.Configuration["CHROMA_API_URL"] ?? "http://host.docker.internal:8000";
 
             builder.Services.AddHttpClient("ocr", client =>
             {
                 client.BaseAddress = new Uri(tesseractUrl);
+            });
+
+            builder.Services.AddHttpClient("chromadb", client =>
+            {
+                client.BaseAddress = new Uri(chromaDbtUrl);
             });
 
             builder.Services.Configure<EmbeddingModelSettings>(
@@ -86,6 +94,9 @@ namespace RAG
                 if (numberOfTokens < 50)
                     return Results.BadRequest("Number of tokens can't be less than 50.");
 
+                var test = new EmbeddingRepository();
+                await test.CreateCollection();
+
                 try
                 {
                     //Ocr the file
@@ -106,6 +117,7 @@ namespace RAG
                     var embeddings = embeddingModel.CreateEmbeddingsAsync(chunks);
 
                     //Save embeddings into db //TO DO
+
 
                     if (result.IsSuccess)
                     {

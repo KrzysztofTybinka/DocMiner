@@ -31,11 +31,8 @@ namespace RAG.Services
                 { fileContent, "file", file.FileName }
             };
 
-            var httpClient = new HttpClient();
             var client = _httpClientFactory.CreateClient("ocr");
-
             var response = await client.PostAsync("/ocr", multipartContent);
-
 
             if (!response.IsSuccessStatusCode)
                 return Result<OcrResponse>.Failure("Request failed");

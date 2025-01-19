@@ -2,6 +2,7 @@
 {
     public class Embedding
     {
+        public int Id { get; set; }
         public List<float> EmbeddingVector { get; set; }
         public string Chunk { get; set; }
         public Metadata Metadata { get; set; }

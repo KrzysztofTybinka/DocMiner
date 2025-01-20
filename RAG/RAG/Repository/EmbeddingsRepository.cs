@@ -18,34 +18,38 @@ namespace RAG.Repository
 
         public async Task<Result> CreateDocumentCollection(string collectionName)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(collectionName))
-                    return Result.Failure("Collection name cannot be null or empty.");
+            if (string.IsNullOrWhiteSpace(collectionName))
+                return Result.Failure("Collection name cannot be null or empty.");
 
-                await _dbContext.CreateCollectionAsync(collectionName);
-                return Result.Success();
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure($"An error occurred while creating the collection: {ex.Message}");
-            }
+            await _dbContext.CreateCollectionAsync(collectionName);
+            return Result.Success();
         }
 
         public async Task<Result> DeleteDocumentCollection(string collectionName)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(collectionName))
-                    return Result.Failure("Collection name cannot be null or empty.");
+            if (string.IsNullOrWhiteSpace(collectionName))
+                return Result.Failure("Collection name cannot be null or empty.");
 
-                await _dbContext.DeleteCollectionAsync(collectionName);
-                return Result.Success();
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure($"An error occurred while deleting the collection: {ex.Message}");
-            }
+            await _dbContext.DeleteCollectionAsync(collectionName);
+            return Result.Success();
+        }
+
+        public async Task<Result<List<string>>> GetDocumentCollections()
+        {
+            var collections = await _dbContext.ListCollectionsAsync()
+                .ToListAsync();
+
+            return Result<List<string>>.Success(collections);
+        }
+
+        public async Task<Result<ChromaCollectionModel>> GetDocumentCollection(string collectionName)
+        {
+            var collections = await _dbContext.GetCollectionAsync(collectionName);
+
+            if (collections == null)
+                return Result<ChromaCollectionModel>.Failure($"Collection {collectionName} doesn't exist.");
+
+            return Result<ChromaCollectionModel>.Success(collections);
         }
 
 

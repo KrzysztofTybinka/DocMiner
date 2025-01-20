@@ -8,6 +8,7 @@ using RAG.Models;
 using RAG.Repository;
 using RAG.Services;
 using RAG.Services.Embedding;
+using System.Collections;
 using System.Net.Http.Headers;
 
 namespace RAG
@@ -58,59 +59,111 @@ namespace RAG
             app.UseHttpsRedirection();
             app.UseAuthorization();
 
-
-            app.MapPost("/ocr", async (IFormFile file, OcrService ocrService) =>
+            app.MapPost("/DocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
             {
-                if (file == null)
-                    return Results.BadRequest("No file was uploaded.");
-
                 try
                 {
-                    var result = await ocrService.RequestOCRAsync(file);
-
-                    var chunker = new Chunker(200, result.Data.Text);
-                    chunker.GetChunks();
+                    var result = await repository.CreateDocumentCollection(collectionName);
 
                     if (result.IsSuccess)
                     {
-                        return Results.Ok(result.Data);
+                        return Results.Ok("Collection created");
                     }
                     else
                     {
                         return Results.BadRequest(result.ErrorMessage);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    return Results.StatusCode(500);
-                }
-            }).DisableAntiforgery();
-
-            app.MapPost("/CreateDocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
-            {
-                var result = await repository.CreateDocumentCollection(collectionName);
-
-                if (result.IsSuccess)
-                {
-                    return Results.Ok("Collection created");
-                }
-                else
-                {
-                    return Results.BadRequest(result.ErrorMessage);
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Server error",
+                        Detail = ex.Message
+                    };
+                    return TypedResults.Problem(problemDetails);
                 }
             });
 
-            app.MapPost("/DeleteDocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
+            app.MapDelete("/DocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
             {
-                var result = await repository.DeleteDocumentCollection(collectionName);
+                try
+                {
+                    var result = await repository.DeleteDocumentCollection(collectionName);
 
-                if (result.IsSuccess)
-                {
-                    return Results.Ok("Collection created");
+                    if (result.IsSuccess)
+                    {
+                        return Results.Ok("Collection deleted");
+                    }
+                    else
+                    {
+                        return Results.BadRequest(result.ErrorMessage);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return Results.BadRequest(result.ErrorMessage);
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Server error",
+                        Detail = ex.Message
+                    };
+                    return TypedResults.Problem(problemDetails);
+                }
+            });
+
+            app.MapGet("/DocumentCollections", async (IEmbeddingsRepository repository) =>
+            {
+                try
+                {
+                    var result = await repository.GetDocumentCollections();
+
+                    if (result.IsSuccess)
+                    {
+                        return Results.Ok(result);
+                    }
+                    else
+                    {
+                        return Results.BadRequest(result.ErrorMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Server error",
+                        Detail = ex.Message
+                    };
+                    return TypedResults.Problem(problemDetails);
+                }
+            });
+
+            app.MapGet("/DocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
+            {
+                try
+                {
+                    var result = await repository.GetDocumentCollection(collectionName);
+
+                    if (result.IsSuccess)
+                    {
+                        return Results.Ok(result);
+                    }
+                    else
+                    {
+                        return Results.BadRequest(result.ErrorMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Server error",
+                        Detail = ex.Message
+                    };
+                    return TypedResults.Problem(problemDetails);
                 }
             });
 

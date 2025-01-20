@@ -1,4 +1,5 @@
-﻿using RAG.Models;
+﻿using RAG.Common;
+using RAG.Models;
 
 namespace RAG.Repository
 {
@@ -10,5 +11,7 @@ namespace RAG.Repository
         void AddRange(IEnumerable<Embedding> embeddings);
         void Delete(int embeddingId);
         void DeleteDocument(int documentId);
+        Task<Result> CreateDocumentCollection(string collectionName);
+        Task<Result> DeleteDocumentCollection(string collectionName);
     }
 }

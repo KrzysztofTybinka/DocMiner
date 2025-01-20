@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using RAG.BLL.Chunking;
 using RAG.Common;
 using RAG.Models;
@@ -25,20 +26,19 @@ namespace RAG
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<OcrService>();
-            builder.Services.AddScoped<EmbeddingRepository>();
 
             var tesseractUrl = builder.Configuration["OCR_URL"] ?? "http://host.docker.internal:8081";
-            var chromaDbtUrl = builder.Configuration["CHROMA_API_URL"] ?? "http://host.docker.internal:8000";
 
             builder.Services.AddHttpClient("ocr", client =>
             {
                 client.BaseAddress = new Uri(tesseractUrl);
             });
 
-            builder.Services.AddHttpClient("chromadb", client =>
-            {
-                client.BaseAddress = new Uri(chromaDbtUrl);
-            });
+            var chromaApiUrl = builder.Configuration.GetValue<string>("ChromaDbUrl") ?? "http://host.docker.internal:8000";
+
+            // Register the repository with the Chroma API URL
+            builder.Services.AddSingleton<IEmbeddingsRepository>(provider =>
+                new EmbeddingsRepository(chromaApiUrl));
 
             builder.Services.Configure<EmbeddingModelSettings>(
                 builder.Configuration.GetSection("EmbeddingModelSettings"));
@@ -86,6 +86,34 @@ namespace RAG
                 }
             }).DisableAntiforgery();
 
+            app.MapPost("/CreateDocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
+            {
+                var result = await repository.CreateDocumentCollection(collectionName);
+
+                if (result.IsSuccess)
+                {
+                    return Results.Ok("Collection created");
+                }
+                else
+                {
+                    return Results.BadRequest(result.ErrorMessage);
+                }
+            });
+
+            app.MapPost("/DeleteDocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
+            {
+                var result = await repository.DeleteDocumentCollection(collectionName);
+
+                if (result.IsSuccess)
+                {
+                    return Results.Ok("Collection created");
+                }
+                else
+                {
+                    return Results.BadRequest(result.ErrorMessage);
+                }
+            });
+
             app.MapPost("/embeddings", async (IFormFile file, OcrService ocrService, int numberOfTokens = 50) =>
             {
                 if (file == null)
@@ -93,9 +121,6 @@ namespace RAG
 
                 if (numberOfTokens < 50)
                     return Results.BadRequest("Number of tokens can't be less than 50.");
-
-                var test = new EmbeddingRepository();
-                await test.CreateCollection();
 
                 try
                 {

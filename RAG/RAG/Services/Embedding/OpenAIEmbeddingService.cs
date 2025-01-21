@@ -17,7 +17,7 @@ namespace RAG.Services.Embedding
             _httpClient = new HttpClient();
         }
 
-        public override async Task<Result<List<Models.Embedding>>> CreateEmbeddingsAsync(List<string> chunks)
+        public override async Task<Result<IEnumerable<DocumentChunk>>> CreateEmbeddingsAsync(List<string> chunks, string fileName)
         {
             var requestPayload = new
             {
@@ -32,9 +32,9 @@ namespace RAG.Services.Embedding
 
             var response = await _httpClient.PostAsync(_embeddingModelSettings.Url, content);
 
-            if (!response.IsSuccessStatusCode)
+            if (response.StatusCode == 400)
             {
-                return Result<List<Models.Embedding>>.Failure(
+                return Result<IEnumerable<DocumentChunk>>.Failure(
                     $"Error: {response.StatusCode}, " +
                     $"{await response.Content.ReadAsStringAsync()}");
             }
@@ -43,26 +43,23 @@ namespace RAG.Services.Embedding
             var openAIResponse = JsonConvert.DeserializeObject<OpenAIEmbeddingResponse>(jsonResponse);
 
             if (openAIResponse == null)
-                return Result<List<Models.Embedding>>.Failure("Response was empty.");
+                return Result<IEnumerable<DocumentChunk>>.Failure("Response was empty.");
 
-            var embeddings = new List<Models.Embedding>();
+            var embeddings = new List<DocumentChunk>();
+            int id = 1;
             foreach (var dataItem in openAIResponse.Data)
             {
-                embeddings.Add(new Models.Embedding
+                embeddings.Add(new DocumentChunk
                 {
+                    Id = $"{fileName}_{id.ToString()}",
                     EmbeddingVector = dataItem.Embedding,
-                    Chunk = chunks[dataItem.Index], // Assuming each chunk corresponds to an index
-                    Metadata = new Metadata
-                    {
-                        DocumentId = "your-doc-id",  // You can replace this with actual document info
-                        ChunkId = dataItem.Index.ToString(),
-                        DocumentName = "your-doc-name",  // Replace with the document name if needed
-                        CreatedOn = DateTime.UtcNow
-                    }
+                    Chunk = chunks[dataItem.Index],
+                    DocumentName = fileName
                 });
+                id++;
             }
 
-            return Result<List<Models.Embedding>>.Success(embeddings);
+            return Result<IEnumerable<DocumentChunk>>.Success(embeddings);
         }
     }
 }

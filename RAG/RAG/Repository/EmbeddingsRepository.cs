@@ -1,6 +1,8 @@
 ﻿using RAG.Models;
 using Microsoft.SemanticKernel.Connectors.Chroma;
 using RAG.Common;
+using Microsoft.Extensions.AI;
+using System.Linq;
 
 namespace RAG.Repository
 {
@@ -34,7 +36,7 @@ namespace RAG.Repository
             return Result.Success();
         }
 
-        public async Task<Result<List<string>>> GetDocumentCollections()
+        public async Task<Result<List<string>>> ListDocumentCollections()
         {
             var collections = await _dbContext.ListCollectionsAsync()
                 .ToListAsync();
@@ -52,37 +54,47 @@ namespace RAG.Repository
             return Result<ChromaCollectionModel>.Success(collections);
         }
 
-
-        public void Add(Embedding embedding)
+        public IEnumerable<DocumentChunk> GetByDocumentName(int documentName, string collectionName)
         {
             throw new NotImplementedException();
         }
 
-        public void AddRange(IEnumerable<Embedding> embeddings)
+        public IEnumerable<DocumentChunk> QueryCollection(DocumentChunk embedding, int similarityTreshold)
         {
             throw new NotImplementedException();
         }
 
-        public void Delete(int embeddingId)
+        public async Task<Result> UploadDocument(IEnumerable<DocumentChunk> chunks, string collectionName)
+        {
+            if (string.IsNullOrWhiteSpace(collectionName))
+                return Result.Failure("Collection name cannot be null or empty.");
+
+            ReadOnlyMemory<float>[] vectorEmbeddings = chunks
+                .Select(chunk => new ReadOnlyMemory<float>(chunk.EmbeddingVector.ToArray()))
+                .ToArray();
+
+            string[] ids = chunks
+                .Select(chunk => chunk.Id)
+                .ToArray();
+
+            await _dbContext.UpsertEmbeddingsAsync(collectionName, ids, vectorEmbeddings);
+
+            return Result.Success();
+        }
+
+        public void UploadManyDocuments(IEnumerable<DocumentChunk> embeddings, string collectionName)
         {
             throw new NotImplementedException();
         }
 
-        public void DeleteDocument(int documentId)
+        public void DeleteDocument(int documentName, string collectionName)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<Embedding> GetByDocumentId(int id)
-        {
-            throw new NotImplementedException();
-        }
 
-        public IEnumerable<Embedding> GetSimilar(Embedding embedding, int similarityTreshold)
-        {
-            throw new NotImplementedException();
-        }
 
-        #pragma warning restore SKEXP0020
+
+#pragma warning restore SKEXP0020
     }
 }

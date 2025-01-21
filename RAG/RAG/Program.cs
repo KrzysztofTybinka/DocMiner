@@ -6,8 +6,10 @@ using RAG.BLL.Chunking;
 using RAG.Common;
 using RAG.Models;
 using RAG.Repository;
+using RAG.Requests;
 using RAG.Services;
 using RAG.Services.Embedding;
+using RAG.Validators;
 using System.Collections;
 using System.Net.Http.Headers;
 
@@ -117,7 +119,7 @@ namespace RAG
             {
                 try
                 {
-                    var result = await repository.GetDocumentCollections();
+                    var result = await repository.ListDocumentCollections();
 
                     if (result.IsSuccess)
                     {
@@ -167,24 +169,26 @@ namespace RAG
                 }
             });
 
-            app.MapPost("/embeddings", async (IFormFile file, OcrService ocrService, int numberOfTokens = 50) =>
+            app.MapPost("/embeddings", async (CreateEmbeddingRequest request) =>
             {
-                if (file == null)
-                    return Results.BadRequest("No file was uploaded.");
+                var validationResult = request.IsValid();
 
-                if (numberOfTokens < 50)
-                    return Results.BadRequest("Number of tokens can't be less than 50.");
+                if (!validationResult.IsValid)
+                    return Results.BadRequest(validationResult.Errors);
 
                 try
                 {
                     //Ocr the file
-                    var result = await ocrService.RequestOCRAsync(file);
+                    var result = await request.OcrService.RequestOCRAsync(request.File);
+
+                    if(!result.IsSuccess)
+                        return Results.BadRequest(result.ErrorMessage);
 
                     //Clean up result
                     string cleanedResult = result.Data.Text.Replace("\r\n", " ").Replace("\n", " ");
 
                     //Split file into chunks
-                    Chunker chunker = new(numberOfTokens, cleanedResult);
+                    Chunker chunker = new(request.NumberOfTokens, cleanedResult);
                     List<string> chunks = chunker.GetChunks();
 
                     //Get embedding service
@@ -192,23 +196,25 @@ namespace RAG
                     EmbeddingService embeddingModel = embeddingServiceFactory.CreateEmbeddingModel();
 
                     //Create embeddings
-                    var embeddings = embeddingModel.CreateEmbeddingsAsync(chunks);
+                    var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(chunks, request.File.Name);
+
+                    if (!embeddingsResult.IsSuccess)
+                        return Results.BadRequest(result.ErrorMessage);
 
                     //Save embeddings into db //TO DO
+                    var uploadResult = await request.Repository.UploadDocument(embeddingsResult.Data, request.File.Name);
 
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok(result.Data);
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
+                    return Results.Ok(result.Data);
                 }
                 catch (Exception ex)
                 {
-                    return Results.StatusCode(500);
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Server error",
+                        Detail = ex.Message
+                    };
+                    return TypedResults.Problem(problemDetails);
                 }
             }).DisableAntiforgery();
 

@@ -1,5 +1,6 @@
 ﻿using RAG.Repository;
 using RAG.Services;
+using RAG.Services.Embedding;
 
 namespace RAG.Requests
 {
@@ -9,6 +10,7 @@ namespace RAG.Requests
         public string DocumentCollectionId { get; set; }
         public OcrService OcrService { get; set; }
         public IEmbeddingsRepository Repository { get; set; }
+        public EmbeddingServiceFactory EmbeddingServiceFactory { get; set; }
         public int NumberOfTokens { get; set; } = 50;
     }
 }

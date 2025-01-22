@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using RAG.BLL.Chunking;
 using RAG.Common;
+using RAG.Handlers;
 using RAG.Models;
 using RAG.Repository;
 using RAG.Requests;
@@ -178,34 +179,16 @@ namespace RAG
 
                 try
                 {
-                    //Ocr the file
-                    var result = await request.OcrService.RequestOCRAsync(request.File);
+                    var result = await request.Handle();
 
-                    if(!result.IsSuccess)
+                    if (result.IsSuccess)
+                    {
+                        return Results.Ok("Embeddings created.");
+                    }
+                    else
+                    {
                         return Results.BadRequest(result.ErrorMessage);
-
-                    //Clean up result
-                    string cleanedResult = result.Data.Text.Replace("\r\n", " ").Replace("\n", " ");
-
-                    //Split file into chunks
-                    Chunker chunker = new(request.NumberOfTokens, cleanedResult);
-                    List<string> chunks = chunker.GetChunks();
-
-                    //Get embedding service
-                    EmbeddingServiceFactory embeddingServiceFactory = app.Services.GetRequiredService<EmbeddingServiceFactory>();
-                    EmbeddingService embeddingModel = embeddingServiceFactory.CreateEmbeddingModel();
-
-                    //Create embeddings
-                    string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
-                    var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(chunks, fileName);
-
-                    if (!embeddingsResult.IsSuccess)
-                        return Results.BadRequest(result.ErrorMessage);
-
-                    //Save embeddings into db
-                    var uploadResult = await request.Repository.UploadDocument(embeddingsResult.Data, request.DocumentCollectionId);
-
-                    return Results.Ok(result.Data);
+                    }
                 }
                 catch (Exception ex)
                 {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using RAG.BLL.Chunking;
 using RAG.Common;
+using RAG.Endpoints;
 using RAG.Handlers;
 using RAG.Models;
 using RAG.Repository;
@@ -59,148 +60,11 @@ namespace RAG
                 app.UseSwaggerUI();
             }
 
+            app.AddDocumentCollectionEndpoints();
+            app.AddEmbeddingsEndpoints();
+
             app.UseHttpsRedirection();
             app.UseAuthorization();
-
-            app.MapPost("/DocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
-            {
-                try
-                {
-                    var result = await repository.CreateDocumentCollection(collectionName);
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok("Collection created");
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
-            });
-
-            app.MapDelete("/DocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
-            {
-                try
-                {
-                    var result = await repository.DeleteDocumentCollection(collectionName);
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok("Collection deleted");
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
-            });
-
-            app.MapGet("/DocumentCollections", async (IEmbeddingsRepository repository) =>
-            {
-                try
-                {
-                    var result = await repository.ListDocumentCollections();
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok(result);
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
-            });
-
-            app.MapGet("/DocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
-            {
-                try
-                {
-                    var result = await repository.GetDocumentCollection(collectionName);
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok(result);
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
-            });
-
-            app.MapPost("/embeddings", async ([AsParameters] CreateEmbeddingRequest request) =>
-            {
-                var validationResult = request.IsValid();
-
-                if (!validationResult.IsValid)
-                    return Results.BadRequest(validationResult.Errors);
-
-                try
-                {
-                    var result = await request.Handle();
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok("Embeddings created.");
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
-            }).DisableAntiforgery();
 
             app.Run();
         }

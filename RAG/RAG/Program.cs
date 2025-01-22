@@ -169,7 +169,7 @@ namespace RAG
                 }
             });
 
-            app.MapPost("/embeddings", async (CreateEmbeddingRequest request) =>
+            app.MapPost("/embeddings", async ([AsParameters] CreateEmbeddingRequest request) =>
             {
                 var validationResult = request.IsValid();
 
@@ -196,13 +196,14 @@ namespace RAG
                     EmbeddingService embeddingModel = embeddingServiceFactory.CreateEmbeddingModel();
 
                     //Create embeddings
-                    var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(chunks, request.File.Name);
+                    string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
+                    var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(chunks, fileName);
 
                     if (!embeddingsResult.IsSuccess)
                         return Results.BadRequest(result.ErrorMessage);
 
-                    //Save embeddings into db //TO DO
-                    var uploadResult = await request.Repository.UploadDocument(embeddingsResult.Data, request.File.Name);
+                    //Save embeddings into db
+                    var uploadResult = await request.Repository.UploadDocument(embeddingsResult.Data, request.DocumentCollectionId);
 
                     return Results.Ok(result.Data);
                 }

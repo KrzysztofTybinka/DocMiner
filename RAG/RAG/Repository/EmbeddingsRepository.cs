@@ -64,9 +64,9 @@ namespace RAG.Repository
             throw new NotImplementedException();
         }
 
-        public async Task<Result> UploadDocument(IEnumerable<DocumentChunk> chunks, string collectionName)
+        public async Task<Result> UploadDocument(IEnumerable<DocumentChunk> chunks, string collectionId)
         {
-            if (string.IsNullOrWhiteSpace(collectionName))
+            if (string.IsNullOrWhiteSpace(collectionId))
                 return Result.Failure("Collection name cannot be null or empty.");
 
             ReadOnlyMemory<float>[] vectorEmbeddings = chunks
@@ -77,7 +77,7 @@ namespace RAG.Repository
                 .Select(chunk => chunk.Id)
                 .ToArray();
 
-            await _dbContext.UpsertEmbeddingsAsync(collectionName, ids, vectorEmbeddings);
+            await _dbContext.UpsertEmbeddingsAsync(collectionId, ids, vectorEmbeddings);
 
             return Result.Success();
         }

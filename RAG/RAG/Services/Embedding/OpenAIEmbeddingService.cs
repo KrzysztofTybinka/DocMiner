@@ -32,7 +32,7 @@ namespace RAG.Services.Embedding
 
             var response = await _httpClient.PostAsync(_embeddingModelSettings.Url, content);
 
-            if (response.StatusCode == 400)
+            if (!response.IsSuccessStatusCode)
             {
                 return Result<IEnumerable<DocumentChunk>>.Failure(
                     $"Error: {response.StatusCode}, " +

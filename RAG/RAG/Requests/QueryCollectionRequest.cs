@@ -10,8 +10,6 @@ namespace RAG.Requests
 
         public string[] Prompts { get; set; }
 
-        public string[]? Keywords { get; set; } = null;
-
         public EmbeddingServiceFactory EmbeddingServiceFactory { get; set; }
         public IEmbeddingsRepository Repository { get; set; }
     }

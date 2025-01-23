@@ -15,7 +15,7 @@ namespace RAG.Handlers
             EmbeddingService embeddingModel = request.EmbeddingServiceFactory.CreateEmbeddingModel();
 
             //Create embeddings
-            var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(request.Prompts, "");
+            var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(request.Prompts);
 
             if (!embeddingsResult.IsSuccess)
                 return Result<ChromaQueryResultModel>.Failure(embeddingsResult.ErrorMessage);
@@ -28,8 +28,7 @@ namespace RAG.Handlers
             //Query collection
             var queryResult = await request.Repository.QueryCollection(request.CollectionId,
                 request.Nresults,
-                embeddings,
-                request.Keywords);
+                embeddings);
 
             if (!queryResult.IsSuccess)
                 return Result<ChromaQueryResultModel>.Failure(queryResult.ErrorMessage);

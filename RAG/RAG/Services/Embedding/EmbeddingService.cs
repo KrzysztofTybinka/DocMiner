@@ -13,6 +13,6 @@ namespace RAG.Services.Embedding
             _embeddingModelSettings = embeddingModelSettings.Value;
         }
 
-        public abstract Task<Result<IEnumerable<DocumentChunk>>> CreateEmbeddingsAsync(IEnumerable<string> chunks, string fileName);
+        public abstract Task<Result<IEnumerable<DocumentChunk>>> CreateEmbeddingsAsync(IEnumerable<string> chunks);
     }
 }

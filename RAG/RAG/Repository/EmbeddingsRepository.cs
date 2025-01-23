@@ -5,6 +5,8 @@ using Microsoft.Extensions.AI;
 using System.Linq;
 using RAG.BLL.Chunking;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.SemanticKernel.Memory;
+using System.Text.Json.Serialization;
 
 namespace RAG.Repository
 {
@@ -38,22 +40,26 @@ namespace RAG.Repository
             return Result.Success();
         }
 
-        public async Task<Result<List<string>>> ListDocumentCollections()
+        public async Task<Result<List<ChromaCollectionModel>>> ListDocumentCollections()
         {
-            var collections = await _dbContext.ListCollectionsAsync()
+            var collectionNames = await _dbContext.ListCollectionsAsync()
                 .ToListAsync();
 
-            return Result<List<string>>.Success(collections);
+            List<ChromaCollectionModel> collections = [];
+            foreach (string name in collectionNames)
+            {
+                var collection = await GetDocumentCollection(name);
+                collections.Add(collection);
+            }
+            return Result<List<ChromaCollectionModel>>.Success(collections);
         }
 
-        public async Task<Result<ChromaCollectionModel>> GetDocumentCollection(string collectionName)
+        public async Task<ChromaCollectionModel> GetDocumentCollection(string collectionName)
         {
-            var collections = await _dbContext.GetCollectionAsync(collectionName);
-
-            if (collections == null)
-                return Result<ChromaCollectionModel>.Failure($"Collection {collectionName} doesn't exist.");
-
-            return Result<ChromaCollectionModel>.Success(collections);
+            #pragma warning disable CS8603
+            //Always not null here
+            return await _dbContext.GetCollectionAsync(collectionName);
+            #pragma warning restore CS8603
         }
 
         public IEnumerable<DocumentChunk> GetByDocumentName(int documentName, string collectionName)
@@ -61,18 +67,23 @@ namespace RAG.Repository
             throw new NotImplementedException();
         }
 
-        public async Task<Result<ChromaQueryResultModel>> QueryCollection(string collectionId, int nResults, float[][] embeddings, params string[] keywords)
+        public async Task<Result<ChromaQueryResultModel>> QueryCollection(string collectionId, int nResults, float[][] embeddings)
         {
             ReadOnlyMemory<float>[] vectorEmbeddings = embeddings
                 .Select(embedding => new ReadOnlyMemory<float>(embedding))
                 .ToArray();
 
-            var result = await _dbContext.QueryEmbeddingsAsync(collectionId, vectorEmbeddings, nResults, keywords);
+            var include = new string[] { "documents" };
+
+            var result = await _dbContext.QueryEmbeddingsAsync(collectionId: collectionId, 
+                queryEmbeddings: vectorEmbeddings, 
+                nResults: nResults, 
+                include: include);
 
             return Result<ChromaQueryResultModel>.Success(result);
         }
 
-        public async Task<Result> UploadDocument(IEnumerable<DocumentChunk> chunks, string collectionId)
+        public async Task<Result> UploadDocument(IEnumerable<DocumentChunk> chunks, string collectionId, string fileName)
         {
             if (string.IsNullOrWhiteSpace(collectionId))
                 return Result.Failure("Collection name cannot be null or empty.");
@@ -81,8 +92,9 @@ namespace RAG.Repository
                 .Select(chunk => new ReadOnlyMemory<float>(chunk.EmbeddingVector.ToArray()))
                 .ToArray();
 
+            int index = 1;
             string[] ids = chunks
-                .Select(chunk => chunk.Id)
+                .Select(chunk => fileName + "_" + index++)
                 .ToArray();
 
             await _dbContext.UpsertEmbeddingsAsync(collectionId, ids, vectorEmbeddings);
@@ -99,10 +111,29 @@ namespace RAG.Repository
         {
             throw new NotImplementedException();
         }
+        #pragma warning restore SKEXP0020
+    }
 
+    public class ChromaCollection
+    {
+        [JsonPropertyName("id")]
+        public Guid Id { get; init; }
 
+        [JsonPropertyName("name")]
+        public string Name { get; }
 
+        [JsonPropertyName("metadata")]
+        public Dictionary<string, object>? Metadata { get; init; }
 
-#pragma warning restore SKEXP0020
+        [JsonPropertyName("tenant")]
+        public string? Tenant { get; init; }
+
+        [JsonPropertyName("database")]
+        public string? Database { get; init; }
+
+        public ChromaCollection(string name)
+        {
+            Name = name;
+        }
     }
 }

@@ -1,5 +1,5 @@
-﻿using RAG.Common;
-using RAG.Models;
+﻿using RAG.ApiResponses;
+using RAG.Common;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;

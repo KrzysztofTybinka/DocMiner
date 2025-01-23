@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using RAG.ApiResponses;
 using RAG.Common;
 using RAG.Models;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace RAG.Services.Embedding
             _httpClient = new HttpClient();
         }
 
-        public override async Task<Result<IEnumerable<DocumentChunk>>> CreateEmbeddingsAsync(IEnumerable<string> chunks, string fileName)
+        public override async Task<Result<IEnumerable<DocumentChunk>>> CreateEmbeddingsAsync(IEnumerable<string> chunks)
         {
             var requestPayload = new
             {
@@ -46,17 +47,13 @@ namespace RAG.Services.Embedding
                 return Result<IEnumerable<DocumentChunk>>.Failure("Response was empty.");
 
             var embeddings = new List<DocumentChunk>();
-            int id = 1;
             foreach (var dataItem in openAIResponse.Data)
             {
                 embeddings.Add(new DocumentChunk
                 {
-                    Id = $"{fileName}_{id.ToString()}",
                     EmbeddingVector = dataItem.Embedding,
-                    Chunk = chunks.ToArray()[dataItem.Index],
-                    DocumentName = fileName
+                    Chunk = chunks.ToList()[dataItem.Index],
                 });
-                id++;
             }
 
             return Result<IEnumerable<DocumentChunk>>.Success(embeddings);

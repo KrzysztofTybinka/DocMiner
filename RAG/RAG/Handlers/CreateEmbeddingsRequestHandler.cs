@@ -26,14 +26,14 @@ namespace RAG.Handlers
             EmbeddingService embeddingModel = request.EmbeddingServiceFactory.CreateEmbeddingModel();
 
             //Create embeddings
-            string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
-            var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(chunks, fileName);
+            var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(chunks);
 
             if (!embeddingsResult.IsSuccess)
                 return Result.Failure(embeddingsResult.ErrorMessage);
 
             //Save embeddings into db
-            var uploadResult = await request.Repository.UploadDocument(embeddingsResult.Data, request.DocumentCollectionId);
+            string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
+            var uploadResult = await request.Repository.UploadDocument(embeddingsResult.Data, request.DocumentCollectionId, fileName);
 
             return uploadResult;
         }

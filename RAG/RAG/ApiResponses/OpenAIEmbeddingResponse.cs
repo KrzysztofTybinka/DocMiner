@@ -1,4 +1,4 @@
-﻿namespace RAG.Models
+﻿namespace RAG.ApiResponses
 {
     public class OpenAIEmbeddingResponse
     {

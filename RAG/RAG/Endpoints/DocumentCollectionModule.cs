@@ -87,33 +87,6 @@ namespace RAG.Endpoints
                     return TypedResults.Problem(problemDetails);
                 }
             });
-
-            app.MapGet("/DocumentCollection", async (string collectionName, IEmbeddingsRepository repository) =>
-            {
-                try
-                {
-                    var result = await repository.GetDocumentCollection(collectionName);
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok(result);
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
-            });
         }
     }
 }

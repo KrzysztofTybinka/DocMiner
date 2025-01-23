@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace RAG.Models
+namespace RAG.ApiResponses
 {
     public class OcrResponse
     {

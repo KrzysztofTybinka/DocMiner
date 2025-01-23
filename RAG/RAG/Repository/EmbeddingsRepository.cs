@@ -3,6 +3,8 @@ using Microsoft.SemanticKernel.Connectors.Chroma;
 using RAG.Common;
 using Microsoft.Extensions.AI;
 using System.Linq;
+using RAG.BLL.Chunking;
+using Microsoft.AspNetCore.Authentication;
 
 namespace RAG.Repository
 {
@@ -59,9 +61,15 @@ namespace RAG.Repository
             throw new NotImplementedException();
         }
 
-        public IEnumerable<DocumentChunk> QueryCollection(DocumentChunk embedding, int similarityTreshold)
+        public async Task<Result<ChromaQueryResultModel>> QueryCollection(string collectionId, int nResults, float[][] embeddings, params string[] keywords)
         {
-            throw new NotImplementedException();
+            ReadOnlyMemory<float>[] vectorEmbeddings = embeddings
+                .Select(embedding => new ReadOnlyMemory<float>(embedding))
+                .ToArray();
+
+            var result = await _dbContext.QueryEmbeddingsAsync(collectionId, vectorEmbeddings, nResults, keywords);
+
+            return Result<ChromaQueryResultModel>.Success(result);
         }
 
         public async Task<Result> UploadDocument(IEnumerable<DocumentChunk> chunks, string collectionId)

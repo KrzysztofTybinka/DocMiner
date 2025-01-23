@@ -17,7 +17,7 @@ namespace RAG.Services.Embedding
             _httpClient = new HttpClient();
         }
 
-        public override async Task<Result<IEnumerable<DocumentChunk>>> CreateEmbeddingsAsync(List<string> chunks, string fileName)
+        public override async Task<Result<IEnumerable<DocumentChunk>>> CreateEmbeddingsAsync(IEnumerable<string> chunks, string fileName)
         {
             var requestPayload = new
             {
@@ -53,7 +53,7 @@ namespace RAG.Services.Embedding
                 {
                     Id = $"{fileName}_{id.ToString()}",
                     EmbeddingVector = dataItem.Embedding,
-                    Chunk = chunks[dataItem.Index],
+                    Chunk = chunks.ToArray()[dataItem.Index],
                     DocumentName = fileName
                 });
                 id++;

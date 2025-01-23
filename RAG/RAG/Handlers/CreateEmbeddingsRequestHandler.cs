@@ -30,7 +30,7 @@ namespace RAG.Handlers
             var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(chunks, fileName);
 
             if (!embeddingsResult.IsSuccess)
-                return Result.Failure(result.ErrorMessage);
+                return Result.Failure(embeddingsResult.ErrorMessage);
 
             //Save embeddings into db
             var uploadResult = await request.Repository.UploadDocument(embeddingsResult.Data, request.DocumentCollectionId);

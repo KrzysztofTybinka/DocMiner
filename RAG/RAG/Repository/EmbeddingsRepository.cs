@@ -32,8 +32,9 @@ namespace RAG.Repository
                 .Select(e => new ReadOnlyMemory<float>(e.EmbeddingVector.ToArray()))
                 .ToList();
 
-            return await client.Query(queryEmbeddings, nResults, 
-                where, whereDocument, include);
+            var result = await client.Query(queryEmbeddings, nResults, where, whereDocument, include);
+
+            return result;
         }
 
         public async Task UploadDocument(IEnumerable<DocumentChunk> chunks, ChromaCollection collection, string fileName)

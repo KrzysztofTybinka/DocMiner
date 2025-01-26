@@ -33,7 +33,7 @@ namespace RAG.Handlers
 
             //Save embeddings into db
             string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
-            var collection = await request.CollectionsRepository.GetDocumentCollection(fileName);
+            var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
             await request.EmbeddingsRepository.UploadDocument(embeddingsResult.Data, collection, fileName);
 
             return Result.Success();

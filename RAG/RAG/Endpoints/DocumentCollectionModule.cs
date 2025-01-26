@@ -55,11 +55,9 @@ namespace RAG.Endpoints
 
             app.MapGet("/DocumentCollections", async (ICollectionsRepository repository) =>
             {
-
-
                 try
                 {
-                var result = await repository.ListDocumentCollections();
+                    var result = await repository.ListDocumentCollections();
                     return Results.Ok(result);
                 }
                 catch (Exception ex)

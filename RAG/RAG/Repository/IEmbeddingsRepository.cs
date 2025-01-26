@@ -12,7 +12,8 @@ namespace RAG.Repository
 
         Task<List<List<ChromaCollectionQueryEntry>>> QueryCollection(
             ChromaCollection collection, int nResults,
-            IEnumerable<DocumentChunk> embeddings, ChromaWhereOperator? where = null,
+            IEnumerable<DocumentChunk> embeddings, 
+            ChromaWhereOperator? where = null,
             ChromaWhereDocumentOperator? whereDocument = null,
             ChromaQueryInclude? include = null);
 

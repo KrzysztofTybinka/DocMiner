@@ -1,4 +1,5 @@
-﻿using ChromaDB.Client.Models;
+﻿using ChromaDB.Client;
+using ChromaDB.Client.Models;
 using RAG.BLL.Chunking;
 using RAG.Common;
 using RAG.Models;

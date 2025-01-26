@@ -46,20 +46,16 @@ namespace RAG
             builder.Services.AddSingleton<ICollectionsRepository>(provider =>
             {
                 var options = new ChromaConfigurationOptions(chromaApiUrl);
-
-                // Resolve HttpClient from DI
                 var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient();
-
-                // Create ChromaClient
                 var chromaClient = new ChromaClient(options, httpClient);
-
-                // Pass the ChromaClient to the repository
                 return new CollectionsRepository(chromaClient);
             });
 
             // Register EmbeddingsRepository with HttpClientFactory
             builder.Services.AddHttpClient<IEmbeddingsRepository, EmbeddingsRepository>((provider, client) =>
-                new EmbeddingsRepository(chromaApiUrl, client));
+            {
+                return new EmbeddingsRepository(chromaApiUrl, provider);
+            });
 
 
             builder.Services.Configure<EmbeddingModelSettings>(

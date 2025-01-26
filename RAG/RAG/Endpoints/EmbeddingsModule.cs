@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ChromaDB.Client;
+using Microsoft.AspNetCore.Mvc;
 using RAG.Handlers;
+using RAG.Repository;
 using RAG.Requests;
 using RAG.Validators;
 
@@ -41,15 +43,15 @@ namespace RAG.Endpoints
                 }
             }).DisableAntiforgery();
 
-            app.MapGet("Embeddings", async ([AsParameters] QueryCollectionRequest request) =>
+            app.MapGet("/QueryEmbeddings", async ([AsParameters] QueryCollectionRequest request) =>
             {
                 var validationResult = request.IsValid();
 
                 if (!validationResult.IsValid)
                     return Results.BadRequest(validationResult.Errors);
 
-            //try
-            //{
+            try
+            {
                 var result = await request.Handle();
 
                     if (result.IsSuccess)
@@ -60,17 +62,49 @@ namespace RAG.Endpoints
                     {
                         return Results.BadRequest(result.ErrorMessage);
                     }
-                //}
-                //catch (Exception ex)
-                //{
-                //    var problemDetails = new ProblemDetails
-                //    {
-                //        Status = StatusCodes.Status500InternalServerError,
-                //        Title = "Server error",
-                //        Detail = ex.Message
-                //    };
-                //    return TypedResults.Problem(problemDetails);
-                //}
+                }
+                catch (Exception ex)
+                {
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Server error",
+                        Detail = ex.Message
+                    };
+                    return TypedResults.Problem(problemDetails);
+                }
+            });
+
+            app.MapGet("/Embeddings", async ([AsParameters] GetCollectionRequest request) =>
+            {
+            if (String.IsNullOrEmpty(request.CollectionName))
+                return Results.BadRequest("Collection name cannot be empty.");
+
+            try
+            {
+                var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
+                var ids = request.WhereChunkIds == null || request.WhereChunkIds.Length == 0 ? null : request.WhereChunkIds.ToList();
+                var metadata = request.WhereDocumentNames == null || request.WhereDocumentNames.Length == 0 ?
+                null :
+                ChromaWhereOperator.Equal("file name", request.WhereDocumentNames);
+
+                    var result = await request.EmbeddingsRepository.GetCollection(
+                        collection,
+                        ids,
+                        metadata);
+
+                    return Results.Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Server error",
+                        Detail = ex.Message
+                    };
+                    return TypedResults.Problem(problemDetails);
+                }
             });
         }
     }

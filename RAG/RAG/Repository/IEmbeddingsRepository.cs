@@ -8,7 +8,13 @@ namespace RAG.Repository
     public interface IEmbeddingsRepository
     {
         //Documents CRUD, documents are uploaded into the collections (one collection has many documents)
-        //IEnumerable<DocumentChunk> GetByDocumentName(int documentName, string collectionName); to do?
+        Task<List<ChromaCollectionEntry>> GetCollection(ChromaCollection collection,
+            List<string>? ids = null,
+            ChromaWhereOperator? where = null,
+            ChromaWhereDocumentOperator? whereDocument = null,
+            int? limit = null,
+            int? offset = null,
+            ChromaGetInclude? include = null);
 
         Task<List<List<ChromaCollectionQueryEntry>>> QueryCollection(
             ChromaCollection collection, int nResults,
@@ -17,7 +23,7 @@ namespace RAG.Repository
             ChromaWhereDocumentOperator? whereDocument = null,
             ChromaQueryInclude? include = null);
 
-        Task UploadDocument(IEnumerable<DocumentChunk> chunks, ChromaCollection collection, string fileName);
-        //void DeleteDocument(int documentName, string collectionName); to do
+        Task UploadDocument(IEnumerable<DocumentChunk> chunks, ChromaCollection collection);
+        Task DeleteDocument(int documentName, ChromaCollection collection);
     }
 }

@@ -20,8 +20,27 @@ namespace RAG.Repository
             _httpClient = httpClient;
         }
 
-        public async Task<List<List<ChromaCollectionQueryEntry>>>
-            QueryCollection(ChromaCollection collection, int nResults,
+        public Task DeleteDocument(int documentName, ChromaCollection collection)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<ChromaCollectionEntry>> GetCollection(
+            ChromaCollection collection,
+            List<string>? ids = null, 
+            ChromaWhereOperator? where = null, 
+            ChromaWhereDocumentOperator? whereDocument = null, 
+            int? limit = null, 
+            int? offset = null, 
+            ChromaGetInclude? include = null)
+        {
+            var client = new ChromaCollectionClient(collection, _options, _httpClient);
+
+            return await client.Get(ids, where, whereDocument, limit, offset, include);
+        }
+
+        public async Task<List<List<ChromaCollectionQueryEntry>>> QueryCollection(
+            ChromaCollection collection, int nResults,
             IEnumerable<DocumentChunk> embeddings, ChromaWhereOperator? where = null, 
             ChromaWhereDocumentOperator? whereDocument = null, 
             ChromaQueryInclude? include = null)
@@ -37,7 +56,7 @@ namespace RAG.Repository
             return result;
         }
 
-        public async Task UploadDocument(IEnumerable<DocumentChunk> chunks, ChromaCollection collection, string fileName)
+        public async Task UploadDocument(IEnumerable<DocumentChunk> chunks, ChromaCollection collection)
         {
             var client = new ChromaCollectionClient(collection, _options, _httpClient);
 
@@ -49,9 +68,8 @@ namespace RAG.Repository
                 .Select(chunk => chunk.Chunk)
                 .ToList();
 
-            int index = 1;
             List<string> ids = chunks
-                .Select(chunk => fileName + "_" + index++)
+                .Select(chunk => chunk.Id)
                 .ToList();
 
             List<Dictionary<string, object>> metadatas = chunks

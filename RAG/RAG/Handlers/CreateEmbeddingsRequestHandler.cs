@@ -2,6 +2,7 @@
 using RAG.Requests;
 using RAG.Services.Embedding;
 using RAG.Common;
+using RAG.Models;
 
 namespace RAG.Handlers
 {
@@ -31,10 +32,13 @@ namespace RAG.Handlers
             if (!embeddingsResult.IsSuccess)
                 return Result.Failure(embeddingsResult.ErrorMessage);
 
-            //Save embeddings into db
+            //Add metadata and ids to chunks
             string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
+            var documentChunks = ChunkDataFiller.Fill(embeddingsResult.Data.ToList(), fileName);
+
+            //Save embeddings into db
             var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
-            await request.EmbeddingsRepository.UploadDocument(embeddingsResult.Data, collection, fileName);
+            await request.EmbeddingsRepository.UploadDocument(embeddingsResult.Data, collection);
 
             return Result.Success();
         }

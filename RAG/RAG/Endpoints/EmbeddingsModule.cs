@@ -48,9 +48,9 @@ namespace RAG.Endpoints
                 if (!validationResult.IsValid)
                     return Results.BadRequest(validationResult.Errors);
 
-                //try
-                //{
-                    var result = await request.Handle();
+            try
+            {
+                var result = await request.Handle();
 
                     if (result.IsSuccess)
                     {
@@ -60,17 +60,17 @@ namespace RAG.Endpoints
                     {
                         return Results.BadRequest(result.ErrorMessage);
                     }
-                //}
-                //catch (Exception ex)
-                //{
-                //    var problemDetails = new ProblemDetails
-                //    {
-                //        Status = StatusCodes.Status500InternalServerError,
-                //        Title = "Server error",
-                //        Detail = ex.Message
-                //    };
-                //    return TypedResults.Problem(problemDetails);
-                //}
+                }
+                catch (Exception ex)
+                {
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Server error",
+                        Detail = ex.Message
+                    };
+                    return TypedResults.Problem(problemDetails);
+                }
             });
         }
     }

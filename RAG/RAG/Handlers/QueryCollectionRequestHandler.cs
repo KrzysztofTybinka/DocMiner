@@ -1,15 +1,16 @@
-﻿using Microsoft.SemanticKernel.Connectors.Chroma;
+﻿using ChromaDB.Client.Models;
 using RAG.BLL.Chunking;
 using RAG.Common;
+using RAG.Models;
 using RAG.Requests;
 using RAG.Services.Embedding;
+using System.Collections;
 
 namespace RAG.Handlers
 {
     public static class QueryCollectionRequestHandler
     {
-        #pragma warning disable SKEXP0020
-        public static async Task<Result<ChromaQueryResultModel>> Handle(this QueryCollectionRequest request)
+        public static async Task<Result<List<List<ChromaCollectionQueryEntry>>>> Handle(this QueryCollectionRequest request)
         {
             //Get embedding service
             EmbeddingService embeddingModel = request.EmbeddingServiceFactory.CreateEmbeddingModel();
@@ -18,23 +19,17 @@ namespace RAG.Handlers
             var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(request.Prompts);
 
             if (!embeddingsResult.IsSuccess)
-                return Result<ChromaQueryResultModel>.Failure(embeddingsResult.ErrorMessage);
+                return Result<List<List<ChromaCollectionQueryEntry>>>.Failure(embeddingsResult.ErrorMessage);
 
-            var embeddings = embeddingsResult.Data
-                .Select(embedding => 
-                    embedding.EmbeddingVector.ToArray())
-                .ToArray();
+            //Get a collection
+            var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
 
             //Query collection
-            var queryResult = await request.Repository.QueryCollection(request.CollectionId,
+            var queryResult = await request.EmbeddingsRepository.QueryCollection(collection,
                 request.Nresults,
-                embeddings);
+                embeddingsResult.Data);
 
-            if (!queryResult.IsSuccess)
-                return Result<ChromaQueryResultModel>.Failure(queryResult.ErrorMessage);
-
-            return Result<ChromaQueryResultModel>.Success(queryResult.Data);
+            return Result<List<List<ChromaCollectionQueryEntry>>>.Success(queryResult);
         }
-        #pragma warning restore SKEXP0020
     }
 }

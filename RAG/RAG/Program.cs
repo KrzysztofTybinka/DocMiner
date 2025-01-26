@@ -1,4 +1,5 @@
 
+using ChromaDB.Client;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,11 +40,27 @@ namespace RAG
                 client.BaseAddress = new Uri(tesseractUrl);
             });
 
-            var chromaApiUrl = builder.Configuration.GetValue<string>("ChromaDbUrl") ?? "http://host.docker.internal:8000";
+            var chromaApiUrl = builder.Configuration.GetValue<string>("ChromaDbUrl") ?? "http://host.docker.internal:8000/api/v1/";
 
-            // Register the repository with the Chroma API URL
-            builder.Services.AddSingleton<IEmbeddingsRepository>(provider =>
-                new EmbeddingsRepository(chromaApiUrl));
+            // Register CollectionsRepository
+            builder.Services.AddSingleton<ICollectionsRepository>(provider =>
+            {
+                var options = new ChromaConfigurationOptions(chromaApiUrl);
+
+                // Resolve HttpClient from DI
+                var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient();
+
+                // Create ChromaClient
+                var chromaClient = new ChromaClient(options, httpClient);
+
+                // Pass the ChromaClient to the repository
+                return new CollectionsRepository(chromaClient);
+            });
+
+            // Register EmbeddingsRepository with HttpClientFactory
+            builder.Services.AddHttpClient<IEmbeddingsRepository, EmbeddingsRepository>((provider, client) =>
+                new EmbeddingsRepository(chromaApiUrl, client));
+
 
             builder.Services.Configure<EmbeddingModelSettings>(
                 builder.Configuration.GetSection("EmbeddingModelSettings"));

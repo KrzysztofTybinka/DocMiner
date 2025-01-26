@@ -9,7 +9,7 @@ namespace RAG.Validators
         {
             var result = new ValidationResult();
 
-            if (string.IsNullOrEmpty(request.CollectionId))
+            if (string.IsNullOrEmpty(request.CollectionName))
             {
                 result.Errors.Add("Collection Id cannot be empty.");
                 result.IsValid = false;

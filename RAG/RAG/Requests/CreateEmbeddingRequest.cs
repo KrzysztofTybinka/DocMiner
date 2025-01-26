@@ -9,7 +9,8 @@ namespace RAG.Requests
         public IFormFile File {  get; set; }
         public string DocumentCollectionId { get; set; }
         public OcrService OcrService { get; set; }
-        public IEmbeddingsRepository Repository { get; set; }
+        public IEmbeddingsRepository EmbeddingsRepository { get; set; }
+        public ICollectionsRepository CollectionsRepository { get; set; }
         public EmbeddingServiceFactory EmbeddingServiceFactory { get; set; }
         public int NumberOfTokens { get; set; } = 50;
     }

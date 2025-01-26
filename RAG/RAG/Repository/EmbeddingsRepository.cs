@@ -1,139 +1,63 @@
-﻿using RAG.Models;
-using Microsoft.SemanticKernel.Connectors.Chroma;
-using RAG.Common;
-using Microsoft.Extensions.AI;
-using System.Linq;
+﻿using ChromaDB.Client;
+using ChromaDB.Client.Models;
+using Microsoft.AspNetCore.Http.Connections;
 using RAG.BLL.Chunking;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.SemanticKernel.Memory;
-using System.Text.Json.Serialization;
+using RAG.Common;
+using RAG.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RAG.Repository
 {
     public class EmbeddingsRepository : IEmbeddingsRepository
     {
-        #pragma warning disable SKEXP0020
+        private readonly ChromaConfigurationOptions _options;
+        private readonly HttpClient _httpClient;
 
-        private readonly ChromaClient _dbContext;
-
-        public EmbeddingsRepository(string chromaUrl)
+        public EmbeddingsRepository(string chromaUrl, HttpClient httpClient)
         {
-            _dbContext = new ChromaClient(chromaUrl);
+            _options = new ChromaConfigurationOptions(chromaUrl);
+            _httpClient = httpClient;
         }
 
-
-        public async Task<Result> CreateDocumentCollection(string collectionName)
+        public async Task<List<List<ChromaCollectionQueryEntry>>>
+            QueryCollection(ChromaCollection collection, int nResults,
+            IEnumerable<DocumentChunk> embeddings, ChromaWhereOperator? where = null, 
+            ChromaWhereDocumentOperator? whereDocument = null, 
+            ChromaQueryInclude? include = null)
         {
-            if (string.IsNullOrWhiteSpace(collectionName))
-                return Result.Failure("Collection name cannot be null or empty.");
+            var client = new ChromaCollectionClient(collection, _options, _httpClient);
 
-            await _dbContext.CreateCollectionAsync(collectionName);
-            return Result.Success();
+            List<ReadOnlyMemory<float>> queryEmbeddings = embeddings
+                .Select(e => new ReadOnlyMemory<float>(e.EmbeddingVector.ToArray()))
+                .ToList();
+
+            return await client.Query(queryEmbeddings, nResults, 
+                where, whereDocument, include);
         }
 
-        public async Task<Result> DeleteDocumentCollection(string collectionName)
+        public async Task UploadDocument(IEnumerable<DocumentChunk> chunks, ChromaCollection collection, string fileName)
         {
-            if (string.IsNullOrWhiteSpace(collectionName))
-                return Result.Failure("Collection name cannot be null or empty.");
+            var client = new ChromaCollectionClient(collection, _options, _httpClient);
 
-            await _dbContext.DeleteCollectionAsync(collectionName);
-            return Result.Success();
-        }
-
-        public async Task<Result<List<ChromaCollectionModel>>> ListDocumentCollections()
-        {
-            var collectionNames = await _dbContext.ListCollectionsAsync()
-                .ToListAsync();
-
-            List<ChromaCollectionModel> collections = [];
-            foreach (string name in collectionNames)
-            {
-                var collection = await GetDocumentCollection(name);
-                collections.Add(collection);
-            }
-            return Result<List<ChromaCollectionModel>>.Success(collections);
-        }
-
-        public async Task<ChromaCollectionModel> GetDocumentCollection(string collectionName)
-        {
-            #pragma warning disable CS8603
-            //Always not null here
-            return await _dbContext.GetCollectionAsync(collectionName);
-            #pragma warning restore CS8603
-        }
-
-        public IEnumerable<DocumentChunk> GetByDocumentName(int documentName, string collectionName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<Result<ChromaQueryResultModel>> QueryCollection(string collectionId, int nResults, float[][] embeddings)
-        {
-            ReadOnlyMemory<float>[] vectorEmbeddings = embeddings
-                .Select(embedding => new ReadOnlyMemory<float>(embedding))
-                .ToArray();
-
-            var include = new string[] { "documents" };
-
-            var result = await _dbContext.QueryEmbeddingsAsync(collectionId: collectionId, 
-                queryEmbeddings: vectorEmbeddings, 
-                nResults: nResults, 
-                include: include);
-
-            return Result<ChromaQueryResultModel>.Success(result);
-        }
-
-        public async Task<Result> UploadDocument(IEnumerable<DocumentChunk> chunks, string collectionId, string fileName)
-        {
-            if (string.IsNullOrWhiteSpace(collectionId))
-                return Result.Failure("Collection name cannot be null or empty.");
-
-            ReadOnlyMemory<float>[] vectorEmbeddings = chunks
+            List<ReadOnlyMemory<float>> embeddings = chunks
                 .Select(chunk => new ReadOnlyMemory<float>(chunk.EmbeddingVector.ToArray()))
-                .ToArray();
+                .ToList();
+
+            List<string> documents = chunks
+                .Select(chunk => chunk.Chunk)
+                .ToList();
 
             int index = 1;
-            string[] ids = chunks
+            List<string> ids = chunks
                 .Select(chunk => fileName + "_" + index++)
-                .ToArray();
+                .ToList();
 
-            await _dbContext.UpsertEmbeddingsAsync(collectionId, ids, vectorEmbeddings);
+            List<Dictionary<string, object>> metadatas = chunks
+                .Select(chunk => chunk.Metadata)
+                .ToList();
 
-            return Result.Success();
-        }
-
-        public void UploadManyDocuments(IEnumerable<DocumentChunk> embeddings, string collectionName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void DeleteDocument(int documentName, string collectionName)
-        {
-            throw new NotImplementedException();
-        }
-        #pragma warning restore SKEXP0020
-    }
-
-    public class ChromaCollection
-    {
-        [JsonPropertyName("id")]
-        public Guid Id { get; init; }
-
-        [JsonPropertyName("name")]
-        public string Name { get; }
-
-        [JsonPropertyName("metadata")]
-        public Dictionary<string, object>? Metadata { get; init; }
-
-        [JsonPropertyName("tenant")]
-        public string? Tenant { get; init; }
-
-        [JsonPropertyName("database")]
-        public string? Database { get; init; }
-
-        public ChromaCollection(string name)
-        {
-            Name = name;
+            await client.Add(ids, embeddings, metadatas, documents);
         }
     }
 }

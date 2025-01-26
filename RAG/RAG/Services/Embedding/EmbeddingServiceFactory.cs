@@ -19,6 +19,8 @@ namespace RAG.Services.Embedding
             {
                 case "OpenAI":
                     return new OpenAIEmbeddingService(_embeddingModelSettings);
+                case "Ollama":
+                    return new OllamaEmbeddingService(_embeddingModelSettings);
 
                 default:
                     throw new ArgumentException($"Model '{_embeddingModelSettings.Value.ProviderName}' is not supported.");

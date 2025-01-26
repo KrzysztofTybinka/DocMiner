@@ -77,23 +77,51 @@ namespace RAG.Endpoints
 
             app.MapGet("/Embeddings", async ([AsParameters] GetCollectionRequest request) =>
             {
-            if (String.IsNullOrEmpty(request.CollectionName))
-                return Results.BadRequest("Collection name cannot be empty.");
+                if (String.IsNullOrEmpty(request.CollectionName))
+                    return Results.BadRequest("Collection name cannot be empty.");
 
-            try
+                try
+                {
+                    var result = await request.Handle();
+
+                    if (result.IsSuccess)
+                    {
+                        return Results.Ok(result);
+                    }
+                    else
+                    {
+                        return Results.BadRequest(result.ErrorMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var problemDetails = new ProblemDetails
+                    {
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = "Server error",
+                        Detail = ex.Message
+                    };
+                    return TypedResults.Problem(problemDetails);
+                }
+            });
+
+            app.MapDelete("/Embeddings", async ([AsParameters] DeleteEmbeddingsRequest request) =>
             {
-                var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
-                var ids = request.WhereChunkIds == null || request.WhereChunkIds.Length == 0 ? null : request.WhereChunkIds.ToList();
-                var metadata = request.WhereDocumentNames == null || request.WhereDocumentNames.Length == 0 ?
-                null :
-                ChromaWhereOperator.Equal("file name", request.WhereDocumentNames);
+                if (String.IsNullOrEmpty(request.CollectionName))
+                    return Results.BadRequest("Collection name cannot be empty.");
 
-                    var result = await request.EmbeddingsRepository.GetCollection(
-                        collection,
-                        ids,
-                        metadata);
+                try
+                {
+                    var result = await request.Handle();
 
-                    return Results.Ok(result);
+                    if (result.IsSuccess)
+                    {
+                        return Results.Ok(result);
+                    }
+                    else
+                    {
+                        return Results.BadRequest(result.ErrorMessage);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -107,5 +135,6 @@ namespace RAG.Endpoints
                 }
             });
         }
+        
     }
 }

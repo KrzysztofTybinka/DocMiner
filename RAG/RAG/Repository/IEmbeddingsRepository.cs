@@ -24,6 +24,9 @@ namespace RAG.Repository
             ChromaQueryInclude? include = null);
 
         Task UploadDocument(IEnumerable<DocumentChunk> chunks, ChromaCollection collection);
-        Task DeleteDocument(int documentName, ChromaCollection collection);
+        Task DeleteEmbeddings(ChromaCollection collection,
+            List<string> ids,
+            ChromaWhereOperator? where = null,
+            ChromaWhereDocumentOperator? whereDocument = null);
     }
 }

@@ -20,9 +20,13 @@ namespace RAG.Repository
             _httpClient = httpClient;
         }
 
-        public Task DeleteDocument(int documentName, ChromaCollection collection)
+        public async Task DeleteEmbeddings(ChromaCollection collection,
+            List<string> ids,
+            ChromaWhereOperator? where = null, 
+            ChromaWhereDocumentOperator? whereDocument = null)
         {
-            throw new NotImplementedException();
+            var client = new ChromaCollectionClient(collection, _options, _httpClient);
+            await client.Delete(ids, where, whereDocument);
         }
 
         public async Task<List<ChromaCollectionEntry>> GetCollection(
@@ -35,7 +39,6 @@ namespace RAG.Repository
             ChromaGetInclude? include = null)
         {
             var client = new ChromaCollectionClient(collection, _options, _httpClient);
-
             return await client.Get(ids, where, whereDocument, limit, offset, include);
         }
 

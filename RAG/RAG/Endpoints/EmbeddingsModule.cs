@@ -43,7 +43,7 @@ namespace RAG.Endpoints
                 }
             }).DisableAntiforgery();
 
-            app.MapGet("/QueryEmbeddings", async ([AsParameters] QueryCollectionRequest request) =>
+            app.MapPost("/QueryEmbeddings", async ([AsParameters] QueryCollectionRequest request) =>
             {
                 var validationResult = request.IsValid();
 

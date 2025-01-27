@@ -25,6 +25,7 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
 ---
 
 ## Structure
+![screenshot](readme-images/RAGschema.png)
 
 ---
 
@@ -82,21 +83,29 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
 
 ### 1. Document Collection Endpoints
 
-- **Create Collection**:
+- **Create collection**:
   ```http
   POST /DocumentCollection
   {
-    "name": "example-collection"
+    "collectionName": "example-collection"
   }
   ```
-- **Retrieve Collections**:
+  Parameter | Type | Required | Description
+  --- | --- | --- | --- |
+  CollectionName | String | Yes | Name of a collection that will be created.
+  
+- **List all collections**:
   ```http
-  GET /DocumentCollection
+  GET /DocumentCollections
   ```
-- **Delete Collection**:
+  
+- **Delete collection**:
   ```http
   DELETE /DocumentCollection/{collectionName}
   ```
+  Parameter | Type | Required | Description
+  --- | --- | --- | --- |
+  CollectionName | String | Yes | Name of a collection that will be deleted.
 
 ### 2. Embedding Endpoints
 
@@ -105,21 +114,50 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
   POST /Embeddings
   {
     "collectionName": "example-collection",
+    "numberOfTokens": "50"
     "filePath": "path/to/document.pdf"
   }
   ```
+  Parameter | Type | Required | Description
+  --- | --- | --- | --- |
+  CollectionName | String | Yes | Name of a collection where the document will be uploaded.
+  NumberOfTokens | Int | Yes | Number of tokens will be used to chunk document. More tokens, more context in one chunk.
+  FilePath | String | Yes | Path to the document that will be uploaded.
+  
 - **Query Collection**:
   ```http
-  GET /QueryEmbeddings
+  POST /QueryEmbeddings
   {
     "collectionName": "example-collection",
-    "query": "search query"
+    "prompts": ["search query", "second query"],
+    "Nresults": 10
   }
   ```
+  Parameter | Type | Required | Description
+  --- | --- | --- | --- |
+  CollectionName | String | Yes | Name of a collection to be queried.
+  Prompts | Array | Yes | Prompts to query the collection.
+  Nresults | Int | Yes | Number of query results, sorted by most similar to the least similar.
+  
+  - **Get Embeddings**:
+  ```http
+  GET /Embeddings?CollectionName=example-collection&WhereDocumentNames=doc1
+  ```
+  Parameter | Type | Required | Description
+  --- | --- | --- | --- |
+  CollectionName | String | Yes | Name of a collection to be queried.
+  WhereDocumentNames | Array | No | Returns chunks related to the specified documents.
+  WhereChunkIds | Array | No | Returns chunks related to the specified IDs.
+  
 - **Delete Embedding**:
   ```http
-  DELETE /Embeddings/{embeddingId}
+  DELETE /Embeddings?collectionName=example-collection&whereDocumentNames=doc1,doc2&whereChunkIds=e0984299-ac54-40a0-9d01-8d85b135f2c6
   ```
+    Parameter | Type | Required | Description
+  --- | --- | --- | --- |
+  CollectionName | String | Yes | Name of the collection from which embeddings will be deleted.
+  WhereDocumentNames | Array | No | A list of document names whose embeddings should be deleted.
+  WhereChunkIds | Array | No | A list of chunk IDs whose embeddings should be deleted.
 
 ---
 

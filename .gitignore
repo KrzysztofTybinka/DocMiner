@@ -32,6 +32,7 @@ RAG/*.suo
 RAG/*.csproj.user
 RAG/.vscode/
 RAG/appsettings.Development.json
+**/obj/Container/
 
 ### Visual Studio ###
 .vs/
@@ -40,6 +41,7 @@ RAG/appsettings.Development.json
 *.userosscache
 *.sln.docstates
 **/.vs/**/DesignTimeBuild/
+**/.vs/ProjectEvaluation/
 
 ### Build Results ###
 bin/

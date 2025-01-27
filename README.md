@@ -1,8 +1,7 @@
 # RAG Project
 
 ## Overview
-
-This project is a modular and Docker-based Retrieval-Augmented Generation (RAG) system. It integrates Python-based OCR preprocessing, Tesseract OCR, C# API for RAG operations, and Chroma DB for managing vector embeddings. RAG systems enhance information retrieval by combining embedding-based search with generative AI capabilities, making it ideal for unstructured document search, Q&A systems, and context-aware content generation.
+This modular, Docker-based Retrieval-Augmented Generation (RAG) system includes Python OCR preprocessing with Tesseract, a C# API for RAG operations, and Chroma DB for vector embeddings. By supporting Ollama-based embedding models, it can run fully offline, ensuring secure handling of sensitive data.
 
 ---
 
@@ -10,16 +9,18 @@ This project is a modular and Docker-based Retrieval-Augmented Generation (RAG) 
 
 - **Document Collections Management**:
   - Create, retrieve, and delete document collections.
-  - Add multiple documents to a collection for OCR and embedding.
+  - Add multiple documents to a collection.
 - **Embeddings Management**:
   - Generate embeddings for documents using configurable embedding models.
   - Query documents based on vector similarity.
-- **Integration**:
-  - Python OCR API for document preprocessing and OCR.
-  - C# RAG API for embedding generation, document management, and querying.
+- **Document prcessing**:
+  - .pdf files preprocessing and OCR.
+  - Cleanup and chunking documents.
+  - Chunks embedding.
   - Chroma DB for fast and scalable vector search.
-- **Flexible Embedding Models**:
-  - Supports OpenAI and Ollama-based embedding models via a factory design pattern.
+- **Supported Embedding Models**:
+  - OpenAI
+  - Ollama
 
 ---
 
@@ -28,37 +29,13 @@ This project is a modular and Docker-based Retrieval-Augmented Generation (RAG) 
 ### Prerequisites
 
 - Docker installed on your machine
-- A compatible embedding model service (e.g., OpenAI or Ollama)
-
-### Folder Structure
-
-```
-src/
-├── OCR (Python, Tesseract wrapper)
-├── RAG (C#, main API)
-    ├── ApiResponses
-    ├── BLL
-    ├── Common
-    ├── Endpoints
-    ├── ExternalServices
-    ├── Handlers
-    ├── Models
-    ├── Repository
-    ├── Requests
-    ├── Services
-        ├── EmbeddingServiceFactory
-        ├── OllamaEmbeddingService
-        ├── OpenAIEmbeddingService
-    ├── Validators
-    └── appsettings.json
-```
 
 ### Setup Instructions
 
 1. **Clone the Repository**:
 
    ```bash
-   git clone <repository-url>
+   git clone [https://github.com/KrzysztofTybinka/DocMiner](https://github.com/KrzysztofTybinka/DocMiner)
    cd <repository-folder>
    ```
 
@@ -70,7 +47,7 @@ src/
        "ProviderName": "Ollama",
        "ModelName": "mxbai-embed-large",
        "Token": null,
-       "Url": "http://host.docker.internal:11434/v1/embeddings"
+       "Url": "http://localhost:11434/v1/embeddings"
      }
      ```
 
@@ -136,14 +113,6 @@ src/
 
 ---
 
-## What is RAG?
-
-Retrieval-Augmented Generation (RAG) is a hybrid approach that combines information retrieval techniques with generative AI models. It enables:
-
-- Searching through vast amounts of unstructured data.
-- Generating precise, context-aware answers to user queries.
-- Enhancing traditional search systems with AI-powered embeddings and vector similarity.
-
 ### Use Cases
 
 - Question-Answering systems
@@ -164,8 +133,4 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 Contributions, issues, and feature requests are welcome. Please open an issue or submit a pull request to contribute.
 
 ---
-
-## Contact
-
-For questions or support, please contact [Your Name or Team Email].
 

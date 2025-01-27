@@ -24,6 +24,10 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
 
 ---
 
+## Structure
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -35,7 +39,7 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
 1. **Clone the Repository**:
 
    ```bash
-   git clone [https://github.com/KrzysztofTybinka/DocMiner](https://github.com/KrzysztofTybinka/DocMiner)
+   git clone https://github.com/KrzysztofTybinka/DocMiner
    cd <repository-folder>
    ```
 
@@ -116,15 +120,6 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
   ```http
   DELETE /Embeddings/{embeddingId}
   ```
-
----
-
-### Use Cases
-
-- Question-Answering systems
-- Context-based document retrieval
-- Legal or technical document analysis
-- Content generation with factual accuracy
 
 ---
 

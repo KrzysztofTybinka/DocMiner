@@ -139,7 +139,7 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
   Prompts | Array | Yes | Prompts to query the collection.
   Nresults | Int | Yes | Number of query results, sorted by most similar to the least similar.
   
-  - **Get Embeddings**:
+- **Get Embeddings**:
   ```http
   GET /Embeddings?CollectionName=example-collection&WhereDocumentNames=doc1
   ```

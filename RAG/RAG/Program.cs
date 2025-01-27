@@ -23,6 +23,7 @@ namespace RAG
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var enableSwagger = builder.Configuration.GetValue<bool>("SwaggerSettings:EnableSwagger");
 
             // Add services to the container.
             builder.Services.AddAuthorization();
@@ -67,7 +68,7 @@ namespace RAG
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (enableSwagger)
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();

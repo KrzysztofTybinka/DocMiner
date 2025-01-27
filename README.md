@@ -1,4 +1,4 @@
-# RAG Project
+# Doc Miner
 
 ## Overview
 This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tesseract OCR, Chroma DB for vector embeddings, and an API for document processing and service integration. With support for Ollama-based embedding models, it can operate fully offline, ensuring secure handling of sensitive data.

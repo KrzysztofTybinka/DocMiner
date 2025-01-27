@@ -10,28 +10,28 @@ Thumbs.db
 *.swo
 
 # Python-specific
-python-api/__pycache__/
-python-api/*.pyc
-python-api/*.pyo
-python-api/.env
-python-api/instance/
-python-api/.pytest_cache/
-python-api/.mypy_cache/
-python-api/.vscode/
-python-api/.venv/
-python-api/venv/
-python-api/build/
-python-api/dist/
+OCR/__pycache__/
+OCR/*.pyc
+OCR/*.pyo
+OCR/.env
+OCR/instance/
+OCR/.pytest_cache/
+OCR/.mypy_cache/
+OCR/.vscode/
+OCR/.venv/
+OCR/venv/
+OCR/build/
+OCR/dist/
 
 # C#/.NET-specific
-csharp-api/bin/
-csharp-api/obj/
-csharp-api/.vs/
-csharp-api/*.user
-csharp-api/*.suo
-csharp-api/*.csproj.user
-csharp-api/.vscode/
-csharp-api/appsettings.Development.json
+RAG/bin/
+RAG/obj/
+RAG/.vs/
+RAG/*.user
+RAG/*.suo
+RAG/*.csproj.user
+RAG/.vscode/
+RAG/appsettings.Development.json
 
 ### Visual Studio ###
 .vs/
@@ -39,6 +39,7 @@ csharp-api/appsettings.Development.json
 *.user
 *.userosscache
 *.sln.docstates
+**/.vs/**/DesignTimeBuild/
 
 ### Build Results ###
 bin/

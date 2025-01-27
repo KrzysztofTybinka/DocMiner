@@ -1,7 +1,7 @@
 # RAG Project
 
 ## Overview
-This modular, Docker-based Retrieval-Augmented Generation (RAG) system includes Python OCR preprocessing with Tesseract, a C# API for RAG operations, and Chroma DB for vector embeddings. By supporting Ollama-based embedding models, it can run fully offline, ensuring secure handling of sensitive data.
+This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tesseract OCR, Chroma DB for vector embeddings, and an API for document processing and service integration. With support for Ollama-based embedding models, it can operate fully offline, ensuring secure handling of sensitive data.
 
 ---
 
@@ -48,6 +48,12 @@ This modular, Docker-based Retrieval-Augmented Generation (RAG) system includes 
        "ModelName": "mxbai-embed-large",
        "Token": null,
        "Url": "http://localhost:11434/v1/embeddings"
+     }
+     ```
+   - Make sure swagger is enabled:
+     ```json
+     "SwaggerSettings": {
+       "EnableSwagger": true
      }
      ```
 

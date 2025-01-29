@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RAG", "RAG\RAG.csproj", "{D874E7B3-FAEE-4334-939F-A34CAFB9D978}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{38EAFE47-95B8-4A74-9D63-6920C84CF319}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{DA5A7167-1B8E-4BC6-BDC1-5F7A1142AF9F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +19,15 @@ Global
 		{D874E7B3-FAEE-4334-939F-A34CAFB9D978}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D874E7B3-FAEE-4334-939F-A34CAFB9D978}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D874E7B3-FAEE-4334-939F-A34CAFB9D978}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA5A7167-1B8E-4BC6-BDC1-5F7A1142AF9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA5A7167-1B8E-4BC6-BDC1-5F7A1142AF9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA5A7167-1B8E-4BC6-BDC1-5F7A1142AF9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA5A7167-1B8E-4BC6-BDC1-5F7A1142AF9F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DA5A7167-1B8E-4BC6-BDC1-5F7A1142AF9F} = {38EAFE47-95B8-4A74-9D63-6920C84CF319}
 	EndGlobalSection
 EndGlobal

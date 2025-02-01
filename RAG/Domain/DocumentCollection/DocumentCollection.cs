@@ -12,7 +12,7 @@ namespace Domain.DocumentCollection
     {
         public Guid Id { get; }
         public string Name { get; }
-        public List<FileInfo> Documents { get; }
+        public List<Document.Document> Documents { get; }
 
         private DocumentCollection(Guid id, string name)
         {

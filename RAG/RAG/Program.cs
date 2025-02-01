@@ -1,10 +1,13 @@
 
 using ChromaDB.Client;
+using Domain.Document;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Persistance.Database;
+using Persistance.Repositories;
+using Persistance.Services.FileStorageService;
 using RAG.BLL.Chunking;
 using RAG.Common;
 using RAG.Endpoints;
@@ -67,12 +70,28 @@ namespace RAG
             builder.Services.AddSingleton<EmbeddingServiceFactory>();
             builder.Services.AddSingleton<EmbeddingService, OpenAIEmbeddingService>();
 
+            //File storage option
+            builder.Services.Configure<FileStorageSettings>(
+                builder.Configuration.GetSection("FileStorageSettings"));
+
+            //File storage
+            builder.Services.AddSingleton<FileStorageFactory>();
+
+            builder.Services.AddScoped(provider =>
+            {
+                var factory = provider.GetRequiredService<FileStorageFactory>();
+                return factory.CreateFileStorageService();
+            });
+
             //DocMinerDb connection
             var connectionString = builder.Configuration.GetConnectionString("DocMinerDbConnection");
 
             //Inject connection string
             builder.Services.AddDbContext<DocMinerDbContext>(options =>
                 options.UseSqlite(connectionString));
+
+            // Repository
+            builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
             var app = builder.Build();
 
@@ -82,6 +101,11 @@ namespace RAG
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.MapPost("/DocumentStorage", (IDocumentRepository repository, DocMinerDbContext dbContext, IFileStorageService service) =>
+            {
+                var repo = new DocumentRepository(service, dbContext);
+            });
 
             app.AddDocumentCollectionEndpoints();
             app.AddEmbeddingsEndpoints();

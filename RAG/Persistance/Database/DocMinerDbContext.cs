@@ -16,6 +16,7 @@ namespace Persistance.Database
         }
 
         public DbSet<Document> Documents { get; set; }
-
+        public DbSet<DocumentCollection> DocumentCollections { get; set; }
+        public DbSet<ProcessedDocument> ProcessedDocuments { get; set; }
     }
 }

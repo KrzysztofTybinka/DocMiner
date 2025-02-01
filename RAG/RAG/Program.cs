@@ -2,7 +2,9 @@
 using ChromaDB.Client;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Persistance.Database;
 using RAG.BLL.Chunking;
 using RAG.Common;
 using RAG.Endpoints;
@@ -64,6 +66,13 @@ namespace RAG
 
             builder.Services.AddSingleton<EmbeddingServiceFactory>();
             builder.Services.AddSingleton<EmbeddingService, OpenAIEmbeddingService>();
+
+            //DocMinerDb connection
+            var connectionString = builder.Configuration.GetConnectionString("DocMinerDbConnection");
+
+            //Inject connection string
+            builder.Services.AddDbContext<DocMinerDbContext>(options =>
+                options.UseSqlite(connectionString));
 
             var app = builder.Build();
 

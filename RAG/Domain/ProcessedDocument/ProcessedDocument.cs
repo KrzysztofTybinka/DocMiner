@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.Abstractions;
 
 namespace Domain.ProcessedDocument
 {
@@ -18,18 +14,22 @@ namespace Domain.ProcessedDocument
             Content = content;
         }
 
-        public ProcessedDocument Create(string name, string content)
+        public Result<ProcessedDocument> Create(string name, string content)
         {
             if (string.IsNullOrEmpty(name))
             {
-
+                return Result<ProcessedDocument>
+                    .Failure(ProcessedDocumentError.NameEmpty);
             }
             if (string.IsNullOrEmpty(content))
             {
+                return Result<ProcessedDocument>
+                    .Failure(ProcessedDocumentError.NoContent);
 
             }
 
-            return new ProcessedDocument(name, content);
+            var result = new ProcessedDocument(name, content);
+            return Result<ProcessedDocument>.Success(result);
         }
     }
 }

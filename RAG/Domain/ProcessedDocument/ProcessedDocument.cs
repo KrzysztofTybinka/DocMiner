@@ -14,7 +14,7 @@ namespace Domain.ProcessedDocument
             Content = content;
         }
 
-        public Result<ProcessedDocument> Create(string name, string content)
+        public static Result<ProcessedDocument> Create(string name, string content)
         {
             if (string.IsNullOrEmpty(name))
             {

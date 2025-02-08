@@ -17,9 +17,9 @@ namespace Application.Services
             _repository = repository;
         }
 
-        public async Task<Result<ProcessedDocument>> CreateAsync(string name, string content)
+        public async Task<Result<ProcessedDocument>> CreateAsync(byte[] fileBytes, string fileName)
         {
-            return await _repository.Create(name, content);
+            return await _repository.Create(fileBytes, fileName);
         }
     }
 }

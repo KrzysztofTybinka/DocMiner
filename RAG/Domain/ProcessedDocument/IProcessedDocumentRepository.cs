@@ -5,6 +5,6 @@ namespace Domain.ProcessedDocument
 {
     public interface IProcessedDocumentRepository
     {
-        Task<Result<ProcessedDocument>> Create(string name, string content);
+        Task<Result<ProcessedDocument>> Create(byte[] fileBytes, string fileName);
     }
 }

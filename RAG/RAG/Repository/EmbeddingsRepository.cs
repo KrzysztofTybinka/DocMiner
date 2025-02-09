@@ -1,5 +1,6 @@
 ﻿using ChromaDB.Client;
 using ChromaDB.Client.Models;
+using Domain.Document;
 using Domain.Embedings;
 using Microsoft.AspNetCore.Http.Connections;
 using RAG.BLL.Chunking;
@@ -60,7 +61,7 @@ namespace RAG.Repository
             return result;
         }
 
-        public async Task UploadDocument(IEnumerable<Embedding> embeddings, ChromaCollection collection)
+        public async Task UploadDocument(Document document, ChromaCollection collection)
         {
             var client = new ChromaCollectionClient(collection, _options, _httpClient);
 

@@ -1,9 +1,6 @@
-﻿using RAG.BLL.Chunking;
-using RAG.Requests;
-using RAG.Services.Embedding;
-using RAG.Common;
-using RAG.Models;
+﻿using RAG.Requests;
 using RAG.Abstractions;
+using Domain.Document;
 
 namespace RAG.Handlers
 {
@@ -33,9 +30,12 @@ namespace RAG.Handlers
             if (!embeddingResult.IsSuccess)
                 return embeddingResult.ToProblemDetails();
 
-            //Add metadata and ids to chunks
-            //string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
-            //var documentChunks = ChunkDataFiller.Fill(embeddingsResult.Data.ToList(), fileName);
+            //Create document
+            string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
+            var documentResult = Document.Create(fileName, embeddingResult.Data);
+
+            if (!documentResult.IsSuccess)
+                return documentResult.ToProblemDetails();
 
             //Save embeddings into db
             var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);

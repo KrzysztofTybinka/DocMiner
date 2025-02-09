@@ -27,6 +27,9 @@ namespace Domain.Abstractions
 
         public static Error Conflict(string code, string description) =>
             new(code, description, ErrorType.Conflict);
+
+        public static Error ExternalServiceFailure(string code, string description) => 
+            new(code, description, ErrorType.ExternalServiceFailure);
     }
 
     public enum ErrorType
@@ -34,6 +37,7 @@ namespace Domain.Abstractions
         Failure = 0,
         Validation = 1,
         NotFound = 2,
-        Conflict = 3
+        Conflict = 3,
+        ExternalServiceFailure = 4
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ChromaDB.Client;
 using ChromaDB.Client.Models;
+using RAG.Abstractions;
 using RAG.BLL.Chunking;
 using RAG.Common;
 using RAG.Models;
@@ -11,16 +12,16 @@ namespace RAG.Handlers
 {
     public static class QueryCollectionRequestHandler
     {
-        public static async Task<Result<List<List<ChromaCollectionQueryEntry>>>> Handle(this QueryCollectionRequest request)
+        public static async Task<IResult> Handle(this QueryCollectionRequest request)
         {
             //Get embedding service
-            EmbeddingService embeddingModel = request.EmbeddingServiceFactory.CreateEmbeddingModel();
+            var embeddingModel = request.EmbeddingGeneratorFactory.CreateEmbeddingGenerator();
 
             //Create embeddings
-            var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(request.Prompts);
+            var embeddingResult = await embeddingModel.GenerateEmbeddingsAsync(request.Prompts);
 
-            if (!embeddingsResult.IsSuccess)
-                return Result<List<List<ChromaCollectionQueryEntry>>>.Failure(embeddingsResult.ErrorMessage);
+            if (!embeddingResult.IsSuccess)
+                return embeddingResult.ToProblemDetails();
 
             //Get a collection
             var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
@@ -28,9 +29,9 @@ namespace RAG.Handlers
             //Query collection
             var queryResult = await request.EmbeddingsRepository.QueryCollection(collection,
                 request.Nresults,
-                embeddingsResult.Data);
+                embeddingResult.Data);
 
-            return Result<List<List<ChromaCollectionQueryEntry>>>.Success(queryResult);
+            return Results.Ok(queryResult);
         }
     }
 }

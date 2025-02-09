@@ -9,7 +9,7 @@ namespace Infrastructure.OcrService
 {
     public static class OcrServiceErrors
     {
-        public static Error CouldntProcess => Error.Failure(
+        public static Error CouldntProcess => Error.ExternalServiceFailure(
             "OcrServiceErrors.CouldntProcess",
             "Ocr service couldn't process your request."
         );

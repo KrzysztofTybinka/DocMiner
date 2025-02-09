@@ -42,6 +42,7 @@ namespace RAG.Abstractions
                 ErrorType.NotFound => StatusCodes.Status404NotFound,
                 ErrorType.Conflict => StatusCodes.Status409Conflict,
                 ErrorType.Validation => StatusCodes.Status401Unauthorized,
+                ErrorType.ExternalServiceFailure => StatusCodes.Status500InternalServerError,
                 _ => StatusCodes.Status500InternalServerError
             };
 
@@ -52,6 +53,7 @@ namespace RAG.Abstractions
                 ErrorType.NotFound => "Not Found",
                 ErrorType.Conflict => "Conflict",
                 ErrorType.Validation => "Validation Error",
+                ErrorType.ExternalServiceFailure => "Server Failure",
                 _ => "Server Failure"
             };
     }

@@ -1,5 +1,6 @@
 ﻿using ChromaDB.Client;
 using ChromaDB.Client.Models;
+using Domain.Embedings;
 using Microsoft.AspNetCore.Http.Connections;
 using RAG.BLL.Chunking;
 using RAG.Common;
@@ -44,14 +45,14 @@ namespace RAG.Repository
 
         public async Task<List<List<ChromaCollectionQueryEntry>>> QueryCollection(
             ChromaCollection collection, int nResults,
-            IEnumerable<DocumentChunk> embeddings, ChromaWhereOperator? where = null, 
+            IEnumerable<Embedding> embeddings, ChromaWhereOperator? where = null, 
             ChromaWhereDocumentOperator? whereDocument = null, 
             ChromaQueryInclude? include = null)
         {
             var client = new ChromaCollectionClient(collection, _options, _httpClient);
 
             List<ReadOnlyMemory<float>> queryEmbeddings = embeddings
-                .Select(e => new ReadOnlyMemory<float>(e.EmbeddingVector.ToArray()))
+                .Select(e => new ReadOnlyMemory<float>(e.TextEmbedding.ToArray()))
                 .ToList();
 
             var result = await client.Query(queryEmbeddings, nResults, where, whereDocument, include);
@@ -59,19 +60,19 @@ namespace RAG.Repository
             return result;
         }
 
-        public async Task UploadDocument(IEnumerable<DocumentChunk> chunks, ChromaCollection collection)
+        public async Task UploadDocument(IEnumerable<Embedding> embeddings, ChromaCollection collection)
         {
             var client = new ChromaCollectionClient(collection, _options, _httpClient);
 
-            List<ReadOnlyMemory<float>> embeddings = chunks
-                .Select(chunk => new ReadOnlyMemory<float>(chunk.EmbeddingVector.ToArray()))
+            List<ReadOnlyMemory<float>> vectors = embeddings
+                .Select(e => new ReadOnlyMemory<float>(e.TextEmbedding.ToArray()))
                 .ToList();
 
-            List<string> documents = chunks
-                .Select(chunk => chunk.Chunk)
+            List<string> documents = embeddings
+                .Select(e => e.Text)
                 .ToList();
 
-            List<string> ids = chunks
+            List<string> ids = embeddings
                 .Select(chunk => chunk.Id)
                 .ToList();
 

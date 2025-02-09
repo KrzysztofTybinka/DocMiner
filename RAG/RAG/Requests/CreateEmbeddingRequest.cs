@@ -1,4 +1,5 @@
-﻿using Application.Services;
+﻿using Application.Abstractions;
+using Application.Services;
 using Domain.ProcessedDocument;
 using Infrastructure.Services;
 using RAG.Repository;
@@ -14,7 +15,7 @@ namespace RAG.Requests
         public ProcessedDocumentService ProcessedDocumentService { get; set; }
         public IEmbeddingsRepository EmbeddingsRepository { get; set; }
         public ICollectionsRepository CollectionsRepository { get; set; }
-        public EmbeddingServiceFactory EmbeddingServiceFactory { get; set; }
+        public IEmbeddingGeneratorFactory EmbeddingGeneratorFactory { get; set; }
         public int NumberOfTokens { get; set; } = 50;
     }
 }

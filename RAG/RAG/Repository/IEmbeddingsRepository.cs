@@ -1,5 +1,6 @@
 ﻿using ChromaDB.Client;
 using ChromaDB.Client.Models;
+using Domain.Embedings;
 using RAG.Common;
 using RAG.Models;
 
@@ -18,12 +19,12 @@ namespace RAG.Repository
 
         Task<List<List<ChromaCollectionQueryEntry>>> QueryCollection(
             ChromaCollection collection, int nResults,
-            IEnumerable<DocumentChunk> embeddings, 
+            IEnumerable<Embedding> embeddings, 
             ChromaWhereOperator? where = null,
             ChromaWhereDocumentOperator? whereDocument = null,
             ChromaQueryInclude? include = null);
 
-        Task UploadDocument(IEnumerable<DocumentChunk> chunks, ChromaCollection collection);
+        Task UploadDocument(IEnumerable<Embedding> chunks, ChromaCollection collection);
         Task DeleteEmbeddings(ChromaCollection collection,
             List<string> ids,
             ChromaWhereOperator? where = null,

@@ -10,18 +10,18 @@ namespace Application.Services
 {
     public class ProcessedDocumentService
     {
-        private IProcessedDocumentGenerator _repository;
+        private IProcessedDocumentGenerator _processedDocumentGenerator;
 
         public ProcessedDocumentService(IProcessedDocumentGenerator repository)
         {
-            _repository = repository;
+            _processedDocumentGenerator = repository;
         }
 
         public async Task<Result<ProcessedDocument>> CreateAsync(
             byte[] fileBytes, 
             string fileName)
         {
-            return await _repository.ProcessDocument(fileBytes, fileName);
+            return await _processedDocumentGenerator.ProcessDocument(fileBytes, fileName);
         }
 
         public async Task<Result<List<string>>> CreateChunksAsync(
@@ -29,7 +29,7 @@ namespace Application.Services
             string fileName, 
             int tokenAmount)
         {
-            var processedDocument = await _repository.ProcessDocument(fileBytes, fileName);
+            var processedDocument = await _processedDocumentGenerator.ProcessDocument(fileBytes, fileName);
 
             if (!processedDocument.IsSuccess)
             {

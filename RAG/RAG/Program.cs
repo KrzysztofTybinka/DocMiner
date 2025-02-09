@@ -1,23 +1,12 @@
 
+using Application.Abstractions;
 using Application.Services;
 using ChromaDB.Client;
 using Domain.ProcessedDocument;
 using Infrastructure.Services;
-using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using RAG.BLL.Chunking;
-using RAG.Common;
 using RAG.Endpoints;
-using RAG.Handlers;
-using RAG.Models;
 using RAG.Repository;
-using RAG.Requests;
-using RAG.Services;
-using RAG.Services.Embedding;
-using RAG.Validators;
-using System.Collections;
-using System.Net.Http.Headers;
+
 
 namespace RAG
 {
@@ -45,6 +34,21 @@ namespace RAG
             });
             // =============================================================================================
 
+            // Register Embedding service client ===========================================================
+            // Register the HTTP client for Ollama
+            builder.Services.AddHttpClient("EmbeddingModelClient", client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["EmbeddingModelSettings:Url"]);
+            });
+
+            // Register the factory and settings
+            builder.Services.AddScoped<IEmbeddingGeneratorFactory, Infrastructure.EmbeddingService.EmbeddingServiceFactory>();
+
+            builder.Services.Configure<Infrastructure.Configuration.EmbeddingModelSettings>(
+                builder.Configuration.GetSection("EmbeddingModelSettings")
+            );
+            // =============================================================================================
+
             var chromaApiUrl = builder.Configuration["ExternalServices:ChromaDbUrl"];
 
             // Register CollectionsRepository
@@ -62,12 +66,6 @@ namespace RAG
                 return new EmbeddingsRepository(chromaApiUrl, provider);
             });
 
-
-            builder.Services.Configure<EmbeddingModelSettings>(
-                builder.Configuration.GetSection("EmbeddingModelSettings"));
-
-            builder.Services.AddSingleton<EmbeddingServiceFactory>();
-            builder.Services.AddSingleton<EmbeddingService, OpenAIEmbeddingService>();
             builder.Services.AddScoped<ProcessedDocumentService>();
 
             var app = builder.Build();

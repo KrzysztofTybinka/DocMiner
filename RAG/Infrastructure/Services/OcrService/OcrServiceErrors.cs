@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.OcrService
+namespace Infrastructure.Services.OcrService
 {
     public static class OcrServiceErrors
     {

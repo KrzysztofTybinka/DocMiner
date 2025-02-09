@@ -4,20 +4,23 @@ namespace Domain.Embedings
 {
     public class Embedding
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; private set; }
 
-        public string Text { get; set; }
+        public string Text { get; private set; }
 
-        public float[] TextEmbedding {  get; set; }
+        public float[] TextEmbedding {  get; private set; }
 
-        private Embedding(string text, float[] textEmbedding)
+        public EmbeddingDetails? Details { get; set; }
+
+        private Embedding(Guid id, string text, float[] textEmbedding, EmbeddingDetails? details)
         {
-            Id = Guid.NewGuid();
+            Id = id;
             Text = text;
             TextEmbedding = textEmbedding;
+            Details = details;
         }
 
-        public static Result<Embedding> Create(string text, float[] textEmbedding)
+        public static Result<Embedding> Create(Guid id, string text, float[] textEmbedding, EmbeddingDetails? details = null)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -28,7 +31,7 @@ namespace Domain.Embedings
                 return Result<Embedding>.Failure(EmbeddingErrors.EmbedingEmpty);
             }
 
-            var embedding = new Embedding(text, textEmbedding);
+            var embedding = new Embedding(id, text, textEmbedding, details);
             return Result< Embedding>.Success(embedding);
         }
     }

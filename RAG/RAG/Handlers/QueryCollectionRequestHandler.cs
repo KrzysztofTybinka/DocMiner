@@ -5,7 +5,6 @@ using RAG.BLL.Chunking;
 using RAG.Common;
 using RAG.Models;
 using RAG.Requests;
-using RAG.Services.Embedding;
 using System.Collections;
 
 namespace RAG.Handlers
@@ -18,7 +17,7 @@ namespace RAG.Handlers
             var embeddingModel = request.EmbeddingGeneratorFactory.CreateEmbeddingGenerator();
 
             //Create embeddings
-            var embeddingResult = await embeddingModel.GenerateEmbeddingsAsync(request.Prompts);
+            var embeddingResult = await embeddingModel.GenerateEmbeddingsAsync([request.Prompt]);
 
             if (!embeddingResult.IsSuccess)
                 return embeddingResult.ToProblemDetails();

@@ -1,9 +1,10 @@
 ﻿using Application.Abstractions;
 using Domain.Embedings;
 using Infrastructure.Configuration;
+using Infrastructure.EmbeddingService;
 using Microsoft.Extensions.Options;
 
-namespace Infrastructure.EmbeddingService
+namespace Infrastructure.Services.EmbeddingService
 {
     public class EmbeddingServiceFactory : IEmbeddingGeneratorFactory
     {

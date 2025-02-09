@@ -1,7 +1,7 @@
 ﻿
 using Domain.Abstractions;
 
-namespace Infrastructure.EmbeddingService
+namespace Infrastructure.Services.EmbeddingService
 {
     public static class EmbeddingServiceErrors
     {

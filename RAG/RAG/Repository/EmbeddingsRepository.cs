@@ -33,7 +33,7 @@ namespace RAG.Repository
 
         public async Task<List<ChromaCollectionEntry>> GetCollection(
             ChromaCollection collection,
-            List<string>? ids = null, 
+            List<string>? ids = null,
             ChromaWhereOperator? where = null, 
             ChromaWhereDocumentOperator? whereDocument = null, 
             int? limit = null, 
@@ -61,27 +61,5 @@ namespace RAG.Repository
             return result;
         }
 
-        public async Task UploadDocument(Document document, ChromaCollection collection)
-        {
-            var client = new ChromaCollectionClient(collection, _options, _httpClient);
-
-            List<ReadOnlyMemory<float>> vectors = embeddings
-                .Select(e => new ReadOnlyMemory<float>(e.TextEmbedding.ToArray()))
-                .ToList();
-
-            List<string> documents = embeddings
-                .Select(e => e.Text)
-                .ToList();
-
-            List<string> ids = embeddings
-                .Select(chunk => chunk.Id)
-                .ToList();
-
-            List<Dictionary<string, object>> metadatas = chunks
-                .Select(chunk => chunk.Metadata)
-                .ToList();
-
-            await client.Add(ids, embeddings, metadatas, documents);
-        }
     }
 }

@@ -3,7 +3,8 @@ using Application.Abstractions;
 using Application.Services;
 using ChromaDB.Client;
 using Domain.ProcessedDocument;
-using Infrastructure.Services;
+using Infrastructure.Services.EmbeddingService;
+using Infrastructure.Services.OcrService;
 using RAG.Endpoints;
 using RAG.Repository;
 
@@ -42,7 +43,7 @@ namespace RAG
             });
 
             // Register the factory and settings
-            builder.Services.AddScoped<IEmbeddingGeneratorFactory, Infrastructure.EmbeddingService.EmbeddingServiceFactory>();
+            builder.Services.AddScoped<IEmbeddingGeneratorFactory, EmbeddingServiceFactory>();
 
             builder.Services.Configure<Infrastructure.Configuration.EmbeddingModelSettings>(
                 builder.Configuration.GetSection("EmbeddingModelSettings")

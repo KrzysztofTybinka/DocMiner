@@ -4,9 +4,9 @@ namespace Domain.ProcessedDocument
 {
     public class ProcessedDocument
     {
-        public string Name { get; set; }
+        public string Name { get; private set; }
 
-        public string Content { get; set; }
+        public string Content { get; private set; }
 
         private ProcessedDocument(string name, string content) 
         {

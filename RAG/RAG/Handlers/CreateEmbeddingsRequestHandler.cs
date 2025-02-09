@@ -3,34 +3,31 @@ using RAG.Requests;
 using RAG.Services.Embedding;
 using RAG.Common;
 using RAG.Models;
+using RAG.Abstractions;
 
 namespace RAG.Handlers
 {
     public static class CreateEmbeddingsRequestHandler
     {
-        public static async Task<Result> Handle(this CreateEmbeddingRequest request)
+        public static async Task<IResult> Handle(this CreateEmbeddingRequest request)
         {
             //Ocr the file
-            var result = await request.OcrService.RequestOCRAsync(request.File);
+            using var memoryStream = new MemoryStream();
+            await request.File.CopyToAsync(memoryStream);
+            var bytes = memoryStream.ToArray();
+
+            var result = await request.ProcessedDocumentService.CreateChunksAsync(bytes,
+                request.File.FileName,
+                request.NumberOfTokens);
 
             if (!result.IsSuccess)
-                return Result.Failure(result.ErrorMessage);
-
-            //Clean up result
-            string cleanedResult = result.Data.Text.Replace("\r\n", " ").Replace("\n", " ");
-
-            //Split file into chunks
-            Chunker chunker = new(request.NumberOfTokens, cleanedResult);
-            List<string> chunks = chunker.GetChunks();
+                return result.ToProblemDetails();
 
             //Get embedding service
             EmbeddingService embeddingModel = request.EmbeddingServiceFactory.CreateEmbeddingModel();
 
             //Create embeddings
-            var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(chunks);
-
-            if (!embeddingsResult.IsSuccess)
-                return Result.Failure(embeddingsResult.ErrorMessage);
+            var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(result.Data);
 
             //Add metadata and ids to chunks
             string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
@@ -40,7 +37,7 @@ namespace RAG.Handlers
             var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
             await request.EmbeddingsRepository.UploadDocument(embeddingsResult.Data, collection);
 
-            return Result.Success();
+            return Results.Ok("Embeddings created.");
         }
     }
 }

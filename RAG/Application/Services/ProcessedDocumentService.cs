@@ -10,16 +10,40 @@ namespace Application.Services
 {
     public class ProcessedDocumentService
     {
-        private IProcessedDocumentRepository _repository;
+        private IProcessedDocumentGenerator _repository;
 
-        public ProcessedDocumentService(IProcessedDocumentRepository repository)
+        public ProcessedDocumentService(IProcessedDocumentGenerator repository)
         {
             _repository = repository;
         }
 
-        public async Task<Result<ProcessedDocument>> CreateAsync(byte[] fileBytes, string fileName)
+        public async Task<Result<ProcessedDocument>> CreateAsync(
+            byte[] fileBytes, 
+            string fileName)
         {
-            return await _repository.Create(fileBytes, fileName);
+            return await _repository.ProcessDocument(fileBytes, fileName);
+        }
+
+        public async Task<Result<List<string>>> CreateChunksAsync(
+            byte[] fileBytes, 
+            string fileName, 
+            int tokenAmount)
+        {
+            var processedDocument = await _repository.ProcessDocument(fileBytes, fileName);
+
+            if (!processedDocument.IsSuccess)
+            {
+                return Result<List<string>>.Failure(processedDocument.Error);
+            }
+
+            string[] delimiters = { ";", ".", "?", "!" };
+            var chunks = DocumentChunker.ChunkContent(
+                processedDocument.Data.Content,
+                tokenAmount,
+                delimiters
+            );
+
+            return chunks;
         }
     }
 }

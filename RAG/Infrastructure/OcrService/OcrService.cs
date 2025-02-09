@@ -9,10 +9,11 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Net;
+using System.Net.Mime;
 
 namespace Infrastructure.Services
 {
-    public class OcrService : IProcessedDocumentRepository
+    public class OcrService : IProcessedDocumentGenerator
     {
         private readonly HttpClient _httpClient;
 
@@ -21,19 +22,16 @@ namespace Infrastructure.Services
             _httpClient = httpClient;
         }
 
-        public async Task<Result<ProcessedDocument>> Create(byte[] fileBytes, string fileName)
+        public async Task<Result<ProcessedDocument>> ProcessDocument(byte[] fileBytes, string fileName)
         {
-            var fileContent = new ByteArrayContent(fileBytes);
+            using var content = new MultipartFormDataContent();
 
-            using var multipartContent = new MultipartFormDataContent
-            {
-                { fileContent, "file", fileName }
-            };
+            var byteArrayContent = new ByteArrayContent(fileBytes);
+            byteArrayContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
 
-            var response = await _httpClient.PostAsync("/ocr", multipartContent);
+            content.Add(byteArrayContent, "file", fileName);
 
-            if (response.StatusCode == HttpStatusCode.InternalServerError)
-                return Result<ProcessedDocument>.Failure(null);
+            var response = await _httpClient.PostAsync("/ocr", content);
 
             if (!response.IsSuccessStatusCode)
                 return Result<ProcessedDocument>.Failure(OcrServiceErrors.CouldntProcess);

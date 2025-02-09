@@ -1,5 +1,8 @@
 
+using Application.Services;
 using ChromaDB.Client;
+using Domain.ProcessedDocument;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,16 +35,17 @@ namespace RAG
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddScoped<OcrService>();
+            //Register OCR service =========================================================================
+            var tesseractUrl = builder.Configuration["ExternalServices:OcrUrl"] ??
+                throw new ArgumentNullException("Ocr url address was empty.");
 
-            var tesseractUrl = builder.Configuration["OCR_URL"] ?? "http://host.docker.internal:8081";
-
-            builder.Services.AddHttpClient("ocr", client =>
+            builder.Services.AddHttpClient<IProcessedDocumentGenerator, OcrService>(client =>
             {
                 client.BaseAddress = new Uri(tesseractUrl);
             });
+            // =============================================================================================
 
-            var chromaApiUrl = builder.Configuration.GetValue<string>("ChromaDbUrl") ?? "http://host.docker.internal:8000/api/v1/";
+            var chromaApiUrl = builder.Configuration["ExternalServices:ChromaDbUrl"];
 
             // Register CollectionsRepository
             builder.Services.AddSingleton<ICollectionsRepository>(provider =>
@@ -64,6 +68,7 @@ namespace RAG
 
             builder.Services.AddSingleton<EmbeddingServiceFactory>();
             builder.Services.AddSingleton<EmbeddingService, OpenAIEmbeddingService>();
+            builder.Services.AddScoped<ProcessedDocumentService>();
 
             var app = builder.Build();
 

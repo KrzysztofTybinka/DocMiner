@@ -32,7 +32,12 @@ namespace RAG.Handlers
                 ids,
                 request.Source);
 
-            return Results.Ok(result);
+            if (!result.IsSuccess)
+            {
+                return result.ToProblemDetails();
+            }
+
+            return Results.Ok(result.Data);
         }
     }
 }

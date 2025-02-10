@@ -4,6 +4,7 @@ using Application.Services;
 using ChromaDB.Client;
 using Domain.ProcessedDocument;
 using Infrastructure.Abstractions;
+using Infrastructure.Factories;
 using Infrastructure.Factories.Embeddings;
 using Infrastructure.Repositories.ChromaCollection;
 using Infrastructure.Services.EmbeddingService;
@@ -66,31 +67,34 @@ namespace RAG
                 return new ChromaCollectionRepository(chromaClient);
             });
 
-            // Register EmbeddingsRepository factory ===============================================================
-            builder.Services.AddSingleton<IEmbeddingRepositoryFactory>(provider =>
+            // Register ChromaCollectionClientFactory =============================================================
+            builder.Services.AddSingleton(provider =>
             {
                 var options = provider.GetRequiredService<ChromaConfigurationOptions>();
                 var httpClient = provider.GetRequiredService<IHttpClientFactory>();
                 var collectionRepository = provider.GetRequiredService<ChromaCollectionRepository>();
-                return new EmbeddingRepositoryFactory(httpClient, options, collectionRepository);
+                return new ChromaCollectionClientFactory(httpClient, options, collectionRepository);
+            });
+
+            // Register EmbeddingsRepository factory ===============================================================
+            builder.Services.AddSingleton<IEmbeddingRepositoryFactory>(provider =>
+            {
+                return new EmbeddingRepositoryFactory(
+                    provider.GetRequiredService<ChromaCollectionClientFactory>());
             });
 
             // Register GetSimilarEmbeddingsQueryHandler factory ==================================================
             builder.Services.AddSingleton<IGetSimilarEmbeddingsQueryHandlerFactory>(provider =>
             {
-                var options = provider.GetRequiredService<ChromaConfigurationOptions>();
-                var httpClient = provider.GetRequiredService<IHttpClientFactory>();
-                var collectionRepository = provider.GetRequiredService<ChromaCollectionRepository>();
-                return new GetSimilarEmbeddingsQueryHandlerFactory(httpClient, options, collectionRepository);
+                return new GetSimilarEmbeddingsQueryHandlerFactory(
+                    provider.GetRequiredService<ChromaCollectionClientFactory>());
             });
 
             // Register GetEmbeddingsByIdQueryHandler factory =====================================================
             builder.Services.AddSingleton<IGetEmbeddingsByIdQueryHandlerFactory>(provider =>
             {
-                var options = provider.GetRequiredService<ChromaConfigurationOptions>();
-                var httpClient = provider.GetRequiredService<IHttpClientFactory>();
-                var collectionRepository = provider.GetRequiredService<ChromaCollectionRepository>();
-                return new GetEmbeddingsByIdQueryHandlerFactory(httpClient, options, collectionRepository);
+                return new GetEmbeddingsByIdQueryHandlerFactory(
+                    provider.GetRequiredService<ChromaCollectionClientFactory>());
             });
 
             // ====================================================================================================

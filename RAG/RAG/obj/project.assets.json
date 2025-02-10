@@ -1536,9 +1536,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\krzys\\source\\repos\\DocMiner\\RAG\\RAG\\RAG.csproj",
-      "projectName": "RAG",
-      "projectPath": "C:\\Users\\krzys\\source\\repos\\DocMiner\\RAG\\RAG\\RAG.csproj",
+      "projectUniqueName": "C:\\Users\\krzys\\source\\repos\\DocMiner\\RAG\\RAG\\RagApi.csproj",
+      "projectName": "RagApi",
+      "projectPath": "C:\\Users\\krzys\\source\\repos\\DocMiner\\RAG\\RAG\\RagApi.csproj",
       "packagesPath": "C:\\Users\\krzys\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\krzys\\source\\repos\\DocMiner\\RAG\\RAG\\obj\\",
       "projectStyle": "PackageReference",

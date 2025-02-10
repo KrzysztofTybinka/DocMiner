@@ -1,38 +1,31 @@
 ﻿
 using Application.Queries;
-using ChromaDB.Client;
 using Domain.Abstractions;
 using Infrastructure.Abstractions;
-using Infrastructure.Queries;
-using Infrastructure.Repositories.ChromaCollection;
+using Infrastructure.Queries.GetSimilarEmbeddings;
 
 namespace Infrastructure.Factories.Embeddings
 {
     public class GetSimilarEmbeddingsQueryHandlerFactory : IGetSimilarEmbeddingsQueryHandlerFactory
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ChromaConfigurationOptions _options;
-        private readonly ChromaCollectionRepository _collectionRepository;
+        private readonly ChromaCollectionClientFactory _chromaCollectionClientFactory;
 
         public GetSimilarEmbeddingsQueryHandlerFactory(
-            IHttpClientFactory httpClientFactory,
-            ChromaConfigurationOptions options,
-            ChromaCollectionRepository collectionRepository)
+            ChromaCollectionClientFactory chromaCollectionClientFactory)
         {
-            _httpClientFactory = httpClientFactory;
-            _options = options;
-            _collectionRepository = collectionRepository;
+            _chromaCollectionClientFactory = chromaCollectionClientFactory;
         }
 
         public async Task<Result<IGetSimilarEmbeddingsQueryHandler>> CreateHandlerAsync(string collectionName)
         {
-            var collection = await _collectionRepository.GetDocumentCollection(collectionName);
+            var clientResult = await _chromaCollectionClientFactory.CreateClientAsync(collectionName);
+            if (!clientResult.IsSuccess)
+            {
+                return Result<IGetSimilarEmbeddingsQueryHandler>.Failure(clientResult.Error);
+            }
 
-            var httpClient = _httpClientFactory.CreateClient("ChromaDB");
-            var client = new ChromaCollectionClient(collection, _options, httpClient);
-
-            var embeddingRepository = new GetSimilarEmbeddingsQueryHandler(client);
-            return Result<IGetSimilarEmbeddingsQueryHandler>.Success(embeddingRepository);
+            var handler = new GetSimilarEmbeddingsQueryHandler(clientResult.Data);
+            return Result<IGetSimilarEmbeddingsQueryHandler>.Success(handler);
         }
     }
 }

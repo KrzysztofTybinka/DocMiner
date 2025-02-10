@@ -6,7 +6,7 @@ using Domain.Abstractions;
 using Domain.Embedings;
 using Infrastructure.Repositories.DocumentRepository;
 
-namespace Infrastructure.Queries
+namespace Infrastructure.Queries.GetSimilarEmbeddings
 {
     public class GetSimilarEmbeddingsQueryHandler : IGetSimilarEmbeddingsQueryHandler
     {
@@ -18,9 +18,9 @@ namespace Infrastructure.Queries
         }
 
         public async Task<Result<List<GetSimilarEmbeddingsResponse>>> Handle(
-            Embedding embedding, 
-            string? sourceDetails, 
-            double minDistance, 
+            Embedding embedding,
+            string? sourceDetails,
+            double minDistance,
             int topResults = 10)
         {
             ChromaWhereOperator? whereClause = null;
@@ -37,7 +37,7 @@ namespace Infrastructure.Queries
                 queryEmbeddings: queryEmbeddings,
                 nResults: topResults,
                 where: whereClause,
-                include: ChromaQueryInclude.Metadatas | 
+                include: ChromaQueryInclude.Metadatas |
                 ChromaQueryInclude.Distances |
                 ChromaQueryInclude.Documents);
 

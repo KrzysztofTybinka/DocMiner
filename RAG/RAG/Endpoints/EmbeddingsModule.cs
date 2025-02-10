@@ -1,7 +1,5 @@
-﻿using ChromaDB.Client;
-using Microsoft.AspNetCore.Mvc;
+﻿
 using RAG.Handlers;
-using RAG.Repository;
 using RAG.Requests;
 using RAG.Validators;
 
@@ -28,29 +26,7 @@ namespace RAG.Endpoints
                 if (!validationResult.IsValid)
                     return Results.BadRequest(validationResult.Errors);
 
-            try
-            {
-                var result = await request.Handle();
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok(result);
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
+                return await request.Handle();
             });
 
             app.MapGet("/Embeddings", async ([AsParameters] GetCollectionRequest request) =>
@@ -58,29 +34,7 @@ namespace RAG.Endpoints
                 if (String.IsNullOrEmpty(request.CollectionName))
                     return Results.BadRequest("Collection name cannot be empty.");
 
-                try
-                {
-                    var result = await request.Handle();
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok(result);
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
+                return await request.Handle();
             });
 
             app.MapDelete("/Embeddings", async ([AsParameters] DeleteEmbeddingsRequest request) =>
@@ -88,29 +42,7 @@ namespace RAG.Endpoints
                 if (String.IsNullOrEmpty(request.CollectionName))
                     return Results.BadRequest("Collection name cannot be empty.");
 
-                try
-                {
-                    var result = await request.Handle();
-
-                    if (result.IsSuccess)
-                    {
-                        return Results.Ok(result);
-                    }
-                    else
-                    {
-                        return Results.BadRequest(result.ErrorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
+                return await request.Handle();
             });
         }
         

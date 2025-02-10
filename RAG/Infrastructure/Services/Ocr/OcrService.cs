@@ -1,16 +1,11 @@
 ﻿using Domain.Abstractions;
 using Domain.ProcessedDocument;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Infrastructure.Services.OcrService.Ocr;
 using System.Net.Http.Headers;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Net;
-using System.Net.Mime;
 
-namespace Infrastructure.Services.OcrService
+
+namespace Infrastructure.Services.Ocr
 {
     public class OcrService : IProcessedDocumentGenerator
     {

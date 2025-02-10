@@ -1,7 +1,7 @@
 ﻿using ChromaDB.Client;
+using Infrastructure.Repositories.ChromaCollection;
 using Microsoft.AspNetCore.Mvc;
 using RAG.Common;
-using RAG.Repository;
 
 namespace RAG.Endpoints
 {
@@ -9,67 +9,28 @@ namespace RAG.Endpoints
     {
         public static void AddDocumentCollectionEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/DocumentCollection", async (string collectionName, ICollectionsRepository repository) =>
+            app.MapPost("/DocumentCollection", async (string collectionName, ChromaCollectionRepository repository) =>
             {
                 if (string.IsNullOrEmpty(collectionName))
                     return Results.BadRequest("Collection name cannot be empty.");
 
-                try
-                {
-                    await repository.CreateDocumentCollection(collectionName);
-                    return Results.Ok("Collection created");
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
+                await repository.CreateDocumentCollection(collectionName);
+                return Results.Ok("Collection created");
             });
 
-            app.MapDelete("/DocumentCollection", async (string collectionName, ICollectionsRepository repository) =>
+            app.MapDelete("/DocumentCollection", async (string collectionName, ChromaCollectionRepository repository) =>
             {
                 if (string.IsNullOrEmpty(collectionName))
                     return Results.BadRequest("Collection name cannot be empty.");
 
-                try
-                {
-                    await repository.DeleteDocumentCollection(collectionName);
-                    return Results.Ok("Collection deleted");
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
+                await repository.DeleteDocumentCollection(collectionName);
+                return Results.Ok("Collection deleted");
             });
 
-            app.MapGet("/DocumentCollections", async (ICollectionsRepository repository) =>
+            app.MapGet("/DocumentCollections", async (ChromaCollectionRepository repository) =>
             {
-                try
-                {
-                    var result = await repository.ListDocumentCollections();
-                    return Results.Ok(result);
-                }
-                catch (Exception ex)
-                {
-                    var problemDetails = new ProblemDetails
-                    {
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Server error",
-                        Detail = ex.Message
-                    };
-                    return TypedResults.Problem(problemDetails);
-                }
+                var result = await repository.ListDocumentCollections();
+                return Results.Ok(result);
             });
         }
     }

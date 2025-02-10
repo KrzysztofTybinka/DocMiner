@@ -64,7 +64,7 @@ namespace Infrastructure.Services.EmbeddingService
             foreach (var dataItem in openAIResponse.Data)
             {
                 var embedding = Embedding.Create(
-                    new Guid(),
+                    Guid.NewGuid(),
                     textPieces.ToList()[dataItem.Index],
                     dataItem.Embedding.ToArray());
 

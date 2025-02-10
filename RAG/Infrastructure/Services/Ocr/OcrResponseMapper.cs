@@ -1,12 +1,8 @@
-﻿using Domain.Abstractions;
+﻿
+using Domain.Abstractions;
 using Domain.ProcessedDocument;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Infrastructure.Services.OcrService.OcrService
+namespace Infrastructure.Services.OcrService.Ocr
 {
     public static class OcrResponseMapper
     {

@@ -12,15 +12,5 @@ namespace Domain.Embedings
         Task<Result> UploadEmbeddingAsync(Embedding embedding);
 
         Task<Result> DeleteEmbeddingAsync(Guid id);
-
-        Task<Result<List<Embedding>>> QueryEmbeddingsAsync(
-            Embedding embeddings, 
-            string sourceDetails,
-            int topResults = 10);
-
-        Task<Result<List<Embedding>>> GetEmbeddingsAsync(
-            List<Guid> ids,
-            string sourceDetails);
-
     }
 }

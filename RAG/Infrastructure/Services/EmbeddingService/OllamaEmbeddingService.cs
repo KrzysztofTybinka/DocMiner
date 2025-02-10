@@ -63,7 +63,7 @@ namespace Infrastructure.Services.EmbeddingService
             foreach (var dataItem in ollamaResponse.Data)
             {
                 var embedding = Embedding.Create(
-                    new Guid(),
+                    Guid.NewGuid(),
                     textPieces[dataItem.Index],
                     dataItem.Embedding.ToArray());
 

@@ -3,10 +3,12 @@ using Application.Abstractions;
 using Application.Services;
 using ChromaDB.Client;
 using Domain.ProcessedDocument;
+using Infrastructure.Abstractions;
+using Infrastructure.Factories.Embeddings;
+using Infrastructure.Repositories.ChromaCollection;
 using Infrastructure.Services.EmbeddingService;
-using Infrastructure.Services.OcrService;
+using Infrastructure.Services.Ocr;
 using RAG.Endpoints;
-using RAG.Repository;
 
 
 namespace RAG
@@ -25,7 +27,7 @@ namespace RAG
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            //Register OCR service =========================================================================
+            //Register OCR service =================================================================================
             var tesseractUrl = builder.Configuration["ExternalServices:OcrUrl"] ??
                 throw new ArgumentNullException("Ocr url address was empty.");
 
@@ -33,13 +35,11 @@ namespace RAG
             {
                 client.BaseAddress = new Uri(tesseractUrl);
             });
-            // =============================================================================================
 
-            // Register Embedding service client ===========================================================
-            // Register the HTTP client for Ollama
+            // Register Embedding service client ==================================================================
             builder.Services.AddHttpClient("EmbeddingModelClient", client =>
             {
-                client.BaseAddress = new Uri(builder.Configuration["EmbeddingModelSettings:Url"]);
+                client.BaseAddress = new Uri(builder.Configuration["EmbeddingModelSettings:Url"]!);
             });
 
             // Register the factory and settings
@@ -48,24 +48,52 @@ namespace RAG
             builder.Services.Configure<Infrastructure.Configuration.EmbeddingModelSettings>(
                 builder.Configuration.GetSection("EmbeddingModelSettings")
             );
-            // =============================================================================================
 
             var chromaApiUrl = builder.Configuration["ExternalServices:ChromaDbUrl"];
 
-            // Register CollectionsRepository
-            builder.Services.AddSingleton<ICollectionsRepository>(provider =>
+            if (string.IsNullOrEmpty(chromaApiUrl))
+                throw new ArgumentNullException(nameof(chromaApiUrl), "ChromaDb url is not configured.");
+
+            // Register ChromaConfigurationOptions as a singleton
+            builder.Services.AddSingleton(new ChromaConfigurationOptions(chromaApiUrl));
+
+            // Register CollectionsRepository =====================================================================
+            builder.Services.AddSingleton(provider =>
             {
-                var options = new ChromaConfigurationOptions(chromaApiUrl);
+                var options = provider.GetRequiredService<ChromaConfigurationOptions>();
                 var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient();
                 var chromaClient = new ChromaClient(options, httpClient);
-                return new CollectionsRepository(chromaClient);
+                return new ChromaCollectionRepository(chromaClient);
             });
 
-            // Register EmbeddingsRepository with HttpClientFactory
-            builder.Services.AddHttpClient<IEmbeddingsRepository, EmbeddingsRepository>((provider, client) =>
+            // Register EmbeddingsRepository factory ===============================================================
+            builder.Services.AddSingleton<IEmbeddingRepositoryFactory>(provider =>
             {
-                return new EmbeddingsRepository(chromaApiUrl, provider);
+                var options = provider.GetRequiredService<ChromaConfigurationOptions>();
+                var httpClient = provider.GetRequiredService<IHttpClientFactory>();
+                var collectionRepository = provider.GetRequiredService<ChromaCollectionRepository>();
+                return new EmbeddingRepositoryFactory(httpClient, options, collectionRepository);
             });
+
+            // Register GetSimilarEmbeddingsQueryHandler factory ==================================================
+            builder.Services.AddSingleton<IGetSimilarEmbeddingsQueryHandlerFactory>(provider =>
+            {
+                var options = provider.GetRequiredService<ChromaConfigurationOptions>();
+                var httpClient = provider.GetRequiredService<IHttpClientFactory>();
+                var collectionRepository = provider.GetRequiredService<ChromaCollectionRepository>();
+                return new GetSimilarEmbeddingsQueryHandlerFactory(httpClient, options, collectionRepository);
+            });
+
+            // Register GetEmbeddingsByIdQueryHandler factory =====================================================
+            builder.Services.AddSingleton<IGetEmbeddingsByIdQueryHandlerFactory>(provider =>
+            {
+                var options = provider.GetRequiredService<ChromaConfigurationOptions>();
+                var httpClient = provider.GetRequiredService<IHttpClientFactory>();
+                var collectionRepository = provider.GetRequiredService<ChromaCollectionRepository>();
+                return new GetEmbeddingsByIdQueryHandlerFactory(httpClient, options, collectionRepository);
+            });
+
+            // ====================================================================================================
 
             builder.Services.AddScoped<ProcessedDocumentService>();
 

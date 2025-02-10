@@ -1,10 +1,8 @@
 ﻿
-
+using Application.Responses;
 using ChromaDB.Client.Models;
 using Domain.Abstractions;
-using Domain.Document;
 using Domain.Embedings;
-using System.Collections.Generic;
 
 namespace Infrastructure.Repositories.DocumentRepository
 {
@@ -40,44 +38,23 @@ namespace Infrastructure.Repositories.DocumentRepository
             return request;
         }
 
-        public static Result<List<Embedding>> FromChromaCollectionQueryEntryToEmbeddings(this List<ChromaCollectionQueryEntry> queryEntry)
+        public static List<GetSimilarEmbeddingsResponse> FromChromaCollectionQueryEntryToSimilarEmbeddingsResponse(this List<ChromaCollectionQueryEntry> queryEntry)
         {
-            var embeddings = new List<Embedding>();
+            var embeddings = new List<GetSimilarEmbeddingsResponse>();
 
             foreach (ChromaCollectionQueryEntry entry in queryEntry)
             {
-                var embedding = Embedding.Create(
-                    new Guid(entry.Id),
-                    entry.Document ?? "",
-                    entry.Embeddings?.ToArray() ?? Array.Empty<float>());
+                entry.Metadata!.TryGetValue("source", out object? source);
 
-                if (!embedding.IsSuccess)
-                    return Result<List<Embedding>>.Failure(embedding.Error);
-
-                embeddings.Add(embedding.Data);
+                embeddings.Add(new GetSimilarEmbeddingsResponse()
+                {
+                    Id = new Guid(entry.Id),
+                    Text = entry.Document ?? "",
+                    Source = source as string ?? string.Empty,
+                    Distance = entry.Distance,
+                });
             }
-
-            return Result<List<Embedding>>.Success(embeddings);
-        }
-
-        public static Result<List<Embedding>> FromChromaCollectionEntryToEmbeddings(this List<ChromaCollectionEntry> collectionEntry)
-        {
-            var embeddings = new List<Embedding>();
-
-            foreach (ChromaCollectionEntry entry in collectionEntry)
-            {
-                var embedding = Embedding.Create(
-                    new Guid(entry.Id),
-                    entry.Document ?? "",
-                    entry.Embeddings?.ToArray() ?? Array.Empty<float>());
-
-                if (!embedding.IsSuccess)
-                    return Result<List<Embedding>>.Failure(embedding.Error);
-
-                embeddings.Add(embedding.Data);
-            }
-
-            return Result<List<Embedding>>.Success(embeddings);
+            return embeddings;
         }
     }
 

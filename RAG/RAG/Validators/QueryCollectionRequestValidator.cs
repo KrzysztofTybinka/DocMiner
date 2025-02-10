@@ -16,7 +16,7 @@ namespace RAG.Validators
                 return result;
             }
 
-            if (request.Prompts.Length == 0)
+            if (request.Prompt.Length == 0)
             {
                 result.Errors.Add("Your need to provide aprompt message.");
                 result.IsValid = false;

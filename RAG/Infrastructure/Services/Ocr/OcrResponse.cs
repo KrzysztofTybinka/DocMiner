@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Services.OcrService.OcrService
+namespace Infrastructure.Services.OcrService.Ocr
 {
     public class OcrResponse
     {

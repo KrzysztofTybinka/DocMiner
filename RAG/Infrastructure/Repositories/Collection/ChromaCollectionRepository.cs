@@ -1,19 +1,15 @@
-﻿using RAG.Models;
-using RAG.Common;
-using System.Linq;
-using RAG.BLL.Chunking;
-using Microsoft.AspNetCore.Authentication;
-using System.Text.Json.Serialization;
+﻿
 using ChromaDB.Client;
-using ChromaDB.Client.Models;
+using Domain.Abstractions;
+using Infrastructure.Repositories.Collection;
 
-namespace RAG.Repository
+namespace Infrastructure.Repositories.ChromaCollection
 {
-    public class CollectionsRepository : ICollectionsRepository
+    public class ChromaCollectionRepository
     {
         private readonly ChromaClient _client;
 
-        public CollectionsRepository(ChromaClient client)
+        public ChromaCollectionRepository(ChromaClient client)
         {
             _client = client;
         }
@@ -28,12 +24,12 @@ namespace RAG.Repository
             await _client.DeleteCollection(collectionName);
         }
 
-        public async Task<List<ChromaCollection>> ListDocumentCollections()
+        public async Task<List<ChromaDB.Client.Models.ChromaCollection>> ListDocumentCollections()
         {
             return await _client.ListCollections();
         }
 
-        public async Task<ChromaCollection> GetDocumentCollection(string collectionName)
+        public async Task<ChromaDB.Client.Models.ChromaCollection> GetDocumentCollection(string collectionName)
         {
             return await _client.GetCollection(collectionName);
         }

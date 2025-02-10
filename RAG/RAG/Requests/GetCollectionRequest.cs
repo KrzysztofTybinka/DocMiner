@@ -1,13 +1,14 @@
-﻿using RAG.Repository;
+﻿
+using Application.Queries;
+using Infrastructure.Abstractions;
 
 namespace RAG.Requests
 {
     public class GetCollectionRequest
     {
-        public IEmbeddingsRepository EmbeddingsRepository { get; set; }
-        public ICollectionsRepository CollectionsRepository { get; set; }
+        public IGetEmbeddingsByIdQueryHandlerFactory QueryhandlerFactory { get; set; }
         public string CollectionName { get; set; }
-        public string[]? WhereDocumentNames { get; set; }
-        public string[]? WhereChunkIds {  get; set; }
+        public string[]? Ids {  get; set; }
+        public string? Source {  get; set; }
     }
 }

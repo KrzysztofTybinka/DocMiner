@@ -1,26 +1,38 @@
 ﻿using ChromaDB.Client;
 using ChromaDB.Client.Models;
-using RAG.Common;
+using Domain.Abstractions;
+using RAG.Abstractions;
 using RAG.Requests;
 
 namespace RAG.Handlers
 {
     public static class GetCollectionRequestHandler
     {
-        public static async Task<Result<List<ChromaCollectionEntry>>> Handle(this GetCollectionRequest request)
+        public static async Task<IResult> Handle(this GetCollectionRequest request)
         {
-            var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
-            var ids = request.WhereChunkIds == null || request.WhereChunkIds.Length == 0 ? null : request.WhereChunkIds.ToList();
-            var metadata = request.WhereDocumentNames == null || request.WhereDocumentNames.Length == 0 ?
-            null :
-            ChromaWhereOperator.Equal("file name", request.WhereDocumentNames);
+            //Get propper collection
+            var queryhandlerResult = await request
+                .QueryhandlerFactory
+                .CreateHandlerAsync(request.CollectionName);
 
-            var result = await request.EmbeddingsRepository.GetCollection(
-                collection,
+            if (!queryhandlerResult.IsSuccess)
+            {
+                return queryhandlerResult.ToProblemDetails();
+            }
+
+            var queryHandler = queryhandlerResult.Data;
+
+            var ids = request.Ids == null || request.Ids.Length == 0 ? null 
+                : request.Ids
+                .Select(id => new Guid(id))
+                .ToList();
+
+            //Query collection
+            var result = await queryHandler.Handle(
                 ids,
-                metadata);
+                request.Source);
 
-            return Result<List<ChromaCollectionEntry>>.Success(result);
+            return Results.Ok(result);
         }
     }
 }

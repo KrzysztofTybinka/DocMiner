@@ -1,36 +1,50 @@
-﻿using ChromaDB.Client;
-using ChromaDB.Client.Models;
-using RAG.BLL.Chunking;
-using RAG.Common;
-using RAG.Models;
+﻿using ChromaDB.Client.Models;
+using Domain.Embedings;
+using RAG.Abstractions;
 using RAG.Requests;
-using RAG.Services.Embedding;
-using System.Collections;
 
 namespace RAG.Handlers
 {
     public static class QueryCollectionRequestHandler
     {
-        public static async Task<Result<List<List<ChromaCollectionQueryEntry>>>> Handle(this QueryCollectionRequest request)
+        public static async Task<IResult> Handle(this QueryCollectionRequest request)
         {
+            //Get propper collection
+            var queryHandlerResult = await request
+                .QueryHandlerFactory
+                .CreateHandlerAsync(request.CollectionName);
+
+            if (!queryHandlerResult.IsSuccess)
+            {
+                return queryHandlerResult.ToProblemDetails();
+            }
+
+            var queryHandler = queryHandlerResult.Data;
+
             //Get embedding service
-            EmbeddingService embeddingModel = request.EmbeddingServiceFactory.CreateEmbeddingModel();
+            var embeddingModel = request.EmbeddingGeneratorFactory
+                .CreateEmbeddingGenerator();
 
             //Create embeddings
-            var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(request.Prompts);
+            var embeddingResult = await embeddingModel
+                .GenerateEmbeddingAsync(request.Prompt);
 
-            if (!embeddingsResult.IsSuccess)
-                return Result<List<List<ChromaCollectionQueryEntry>>>.Failure(embeddingsResult.ErrorMessage);
-
-            //Get a collection
-            var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
+            if (!embeddingResult.IsSuccess)
+                return embeddingResult.ToProblemDetails();
 
             //Query collection
-            var queryResult = await request.EmbeddingsRepository.QueryCollection(collection,
-                request.Nresults,
-                embeddingsResult.Data);
+            var queryResult = await queryHandler
+                .Handle(embeddingResult.Data,
+                request.Source,
+                request.MinDistance,
+                request.Nresults);
 
-            return Result<List<List<ChromaCollectionQueryEntry>>>.Success(queryResult);
+            if (!queryResult.IsSuccess)
+            {
+                return queryResult.ToProblemDetails();
+            }
+
+            return Results.Ok(queryResult.Data);
         }
     }
 }

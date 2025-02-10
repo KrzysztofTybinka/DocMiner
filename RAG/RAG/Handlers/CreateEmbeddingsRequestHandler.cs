@@ -1,46 +1,62 @@
-﻿using RAG.BLL.Chunking;
-using RAG.Requests;
-using RAG.Services.Embedding;
-using RAG.Common;
-using RAG.Models;
+﻿using RAG.Requests;
+using RAG.Abstractions;
+using Domain.Embedings;
+using Infrastructure.Repositories.DocumentRepository;
 
 namespace RAG.Handlers
 {
     public static class CreateEmbeddingsRequestHandler
     {
-        public static async Task<Result> Handle(this CreateEmbeddingRequest request)
+        public static async Task<IResult> Handle(this CreateEmbeddingRequest request)
         {
+            //Get propper collection
+            var embeddingsRepositoryResult = await request
+                .EmbeddingsRepositoryFactory
+                .CreateRepositoryAsync(request.CollectionName);
+
+            if (!embeddingsRepositoryResult.IsSuccess)
+            {
+                return embeddingsRepositoryResult.ToProblemDetails();
+            }
+
             //Ocr the file
-            var result = await request.OcrService.RequestOCRAsync(request.File);
+            using var memoryStream = new MemoryStream();
+            await request.File.CopyToAsync(memoryStream);
+            var bytes = memoryStream.ToArray();
 
-            if (!result.IsSuccess)
-                return Result.Failure(result.ErrorMessage);
+            var chunksResult = await request.ProcessedDocumentService
+                .CreateChunksAsync(bytes,
+                    request.File.FileName,
+                    request.NumberOfTokens);
 
-            //Clean up result
-            string cleanedResult = result.Data.Text.Replace("\r\n", " ").Replace("\n", " ");
-
-            //Split file into chunks
-            Chunker chunker = new(request.NumberOfTokens, cleanedResult);
-            List<string> chunks = chunker.GetChunks();
+            if (!chunksResult.IsSuccess)
+                return chunksResult.ToProblemDetails();
 
             //Get embedding service
-            EmbeddingService embeddingModel = request.EmbeddingServiceFactory.CreateEmbeddingModel();
+            var embeddingModel = request.EmbeddingGeneratorFactory
+                .CreateEmbeddingGenerator();
 
             //Create embeddings
-            var embeddingsResult = await embeddingModel.CreateEmbeddingsAsync(chunks);
+            var embeddingResult = await embeddingModel
+                .GenerateEmbeddingsAsync(chunksResult.Data);
 
-            if (!embeddingsResult.IsSuccess)
-                return Result.Failure(embeddingsResult.ErrorMessage);
+            if (!embeddingResult.IsSuccess)
+                return embeddingResult.ToProblemDetails();
 
-            //Add metadata and ids to chunks
+            //Assign source name
             string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
-            var documentChunks = ChunkDataFiller.Fill(embeddingsResult.Data.ToList(), fileName);
 
-            //Save embeddings into db
-            var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
-            await request.EmbeddingsRepository.UploadDocument(embeddingsResult.Data, collection);
+            embeddingResult.Data.ForEach(e => 
+                e.Details = new EmbeddingDetails() 
+                {
+                    Source = fileName 
+                });
 
-            return Result.Success();
+            //Save embeddings into a collection
+            var embeddingsRepository = embeddingsRepositoryResult.Data;
+            await embeddingsRepository.UploadEmbeddingsAsync(embeddingResult.Data);
+
+            return Results.Ok("Embeddings created.");
         }
     }
 }

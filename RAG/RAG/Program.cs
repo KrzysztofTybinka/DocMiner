@@ -1,20 +1,16 @@
 
+using Application.Abstractions;
+using Application.Services;
 using ChromaDB.Client;
-using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using RAG.BLL.Chunking;
-using RAG.Common;
+using Domain.ProcessedDocument;
+using Infrastructure.Abstractions;
+using Infrastructure.Factories;
+using Infrastructure.Factories.Embeddings;
+using Infrastructure.Repositories.ChromaCollection;
+using Infrastructure.Services.EmbeddingService;
+using Infrastructure.Services.Ocr;
 using RAG.Endpoints;
-using RAG.Handlers;
-using RAG.Models;
-using RAG.Repository;
-using RAG.Requests;
-using RAG.Services;
-using RAG.Services.Embedding;
-using RAG.Validators;
-using System.Collections;
-using System.Net.Http.Headers;
+
 
 namespace RAG
 {
@@ -32,38 +28,78 @@ namespace RAG
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddScoped<OcrService>();
+            //Register OCR service =================================================================================
+            var tesseractUrl = builder.Configuration["ExternalServices:OcrUrl"] ??
+                throw new ArgumentNullException("Ocr url address was empty.");
 
-            var tesseractUrl = builder.Configuration["OCR_URL"] ?? "http://host.docker.internal:8081";
-
-            builder.Services.AddHttpClient("ocr", client =>
+            builder.Services.AddHttpClient<IProcessedDocumentGenerator, OcrService>(client =>
             {
                 client.BaseAddress = new Uri(tesseractUrl);
             });
 
-            var chromaApiUrl = builder.Configuration.GetValue<string>("ChromaDbUrl") ?? "http://host.docker.internal:8000/api/v1/";
-
-            // Register CollectionsRepository
-            builder.Services.AddSingleton<ICollectionsRepository>(provider =>
+            // Register Embedding service client ==================================================================
+            builder.Services.AddHttpClient("EmbeddingModelClient", client =>
             {
-                var options = new ChromaConfigurationOptions(chromaApiUrl);
+                client.BaseAddress = new Uri(builder.Configuration["EmbeddingModelSettings:Url"]!);
+            });
+
+            // Register the factory and settings
+            builder.Services.AddScoped<IEmbeddingGeneratorFactory, EmbeddingServiceFactory>();
+
+            builder.Services.Configure<Infrastructure.Configuration.EmbeddingModelSettings>(
+                builder.Configuration.GetSection("EmbeddingModelSettings")
+            );
+
+            var chromaApiUrl = builder.Configuration["ExternalServices:ChromaDbUrl"];
+
+            if (string.IsNullOrEmpty(chromaApiUrl))
+                throw new ArgumentNullException(nameof(chromaApiUrl), "ChromaDb url is not configured.");
+
+            // Register ChromaConfigurationOptions as a singleton
+            builder.Services.AddSingleton(new ChromaConfigurationOptions(chromaApiUrl));
+
+            // Register CollectionsRepository =====================================================================
+            builder.Services.AddSingleton(provider =>
+            {
+                var options = provider.GetRequiredService<ChromaConfigurationOptions>();
                 var httpClient = provider.GetRequiredService<IHttpClientFactory>().CreateClient();
                 var chromaClient = new ChromaClient(options, httpClient);
-                return new CollectionsRepository(chromaClient);
+                return new ChromaCollectionRepository(chromaClient);
             });
 
-            // Register EmbeddingsRepository with HttpClientFactory
-            builder.Services.AddHttpClient<IEmbeddingsRepository, EmbeddingsRepository>((provider, client) =>
+            // Register ChromaCollectionClientFactory =============================================================
+            builder.Services.AddSingleton(provider =>
             {
-                return new EmbeddingsRepository(chromaApiUrl, provider);
+                var options = provider.GetRequiredService<ChromaConfigurationOptions>();
+                var httpClient = provider.GetRequiredService<IHttpClientFactory>();
+                var collectionRepository = provider.GetRequiredService<ChromaCollectionRepository>();
+                return new ChromaCollectionClientFactory(httpClient, options, collectionRepository);
             });
 
+            // Register EmbeddingsRepository factory ===============================================================
+            builder.Services.AddSingleton<IEmbeddingRepositoryFactory>(provider =>
+            {
+                return new EmbeddingRepositoryFactory(
+                    provider.GetRequiredService<ChromaCollectionClientFactory>());
+            });
 
-            builder.Services.Configure<EmbeddingModelSettings>(
-                builder.Configuration.GetSection("EmbeddingModelSettings"));
+            // Register GetSimilarEmbeddingsQueryHandler factory ==================================================
+            builder.Services.AddSingleton<IGetSimilarEmbeddingsQueryHandlerFactory>(provider =>
+            {
+                return new GetSimilarEmbeddingsQueryHandlerFactory(
+                    provider.GetRequiredService<ChromaCollectionClientFactory>());
+            });
 
-            builder.Services.AddSingleton<EmbeddingServiceFactory>();
-            builder.Services.AddSingleton<EmbeddingService, OpenAIEmbeddingService>();
+            // Register GetEmbeddingsByIdQueryHandler factory =====================================================
+            builder.Services.AddSingleton<IGetEmbeddingsByIdQueryHandlerFactory>(provider =>
+            {
+                return new GetEmbeddingsByIdQueryHandlerFactory(
+                    provider.GetRequiredService<ChromaCollectionClientFactory>());
+            });
+
+            // ====================================================================================================
+
+            builder.Services.AddScoped<ProcessedDocumentService>();
 
             var app = builder.Build();
 

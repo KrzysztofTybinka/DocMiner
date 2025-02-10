@@ -1,26 +1,36 @@
 ﻿using ChromaDB.Client;
 using ChromaDB.Client.Models;
-using RAG.Common;
+using Domain.Abstractions;
+using RAG.Abstractions;
 using RAG.Requests;
 
 namespace RAG.Handlers
 {
     public static class DeleteEmbeddingsRequestHandler
     {
-        public static async Task<Result> Handle(this DeleteEmbeddingsRequest request)
+        public static async Task<IResult> Handle(this DeleteEmbeddingsRequest request)
         {
-            var collection = await request.CollectionsRepository.GetDocumentCollection(request.CollectionName);
-            var ids = request.WhereChunkIds == null || request.WhereChunkIds.Length == 0 ? null : request.WhereChunkIds.ToList();
-            var metadata = request.WhereDocumentNames == null || request.WhereDocumentNames.Length == 0 ?
-            null :
-            ChromaWhereOperator.Equal("file name", request.WhereDocumentNames);
+            if (request.Ids == null || request.Ids.Length == 0)
+                return Results.BadRequest("You need to pass at leastone embedding Id");
 
-            await request.EmbeddingsRepository.DeleteEmbeddings(
-                collection,
-                ids,
-                metadata);
+            //Get propper collection
+            var embeddingsRepositoryResult = await request
+                .EmbeddingsRepositoryFactory
+                .CreateRepositoryAsync(request.CollectionName);
 
-            return Result.Success();
+            if (!embeddingsRepositoryResult.IsSuccess)
+            {
+                return embeddingsRepositoryResult.ToProblemDetails();
+            }
+
+            var ids = request.Ids
+                .Select(id => new Guid(id))
+                .ToList();
+
+            var embeddingsRepository = embeddingsRepositoryResult.Data;
+            await embeddingsRepository.DeleteEmbeddingsAsync(ids);
+
+            return Results.Ok("Embeddings deleted.");
         }
     }
 }

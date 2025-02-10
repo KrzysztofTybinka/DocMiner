@@ -1,13 +1,11 @@
-﻿using RAG.Repository;
+﻿using Infrastructure.Abstractions;
 
 namespace RAG.Requests
 {
     public class DeleteEmbeddingsRequest
     {
-        public IEmbeddingsRepository EmbeddingsRepository { get; set; }
-        public ICollectionsRepository CollectionsRepository { get; set; }
+        public IEmbeddingRepositoryFactory EmbeddingsRepositoryFactory { get; set; }
         public string CollectionName { get; set; }
-        public string[]? WhereDocumentNames { get; set; }
-        public string[]? WhereChunkIds { get; set; }
+        public string[]? Ids { get; set; }
     }
 }

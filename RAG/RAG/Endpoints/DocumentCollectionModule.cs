@@ -1,7 +1,4 @@
-﻿using ChromaDB.Client;
-using Infrastructure.Repositories.ChromaCollection;
-using Microsoft.AspNetCore.Mvc;
-using RAG.Common;
+﻿using Infrastructure.Repositories.ChromaCollection;
 
 namespace RAG.Endpoints
 {

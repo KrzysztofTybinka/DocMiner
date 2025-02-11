@@ -1,13 +1,13 @@
-﻿using ChromaDB.Client.Models;
-using Domain.Embedings;
-using RAG.Abstractions;
-using RAG.Requests;
+﻿using Application.Responses;
+using Domain.Abstractions;
+using MediatR;
 
-namespace RAG.Handlers
+
+namespace Application.Queries.GetSimilarEmbeddings
 {
-    public static class QueryCollectionRequestHandler
+    public class GetSimilarEmbeddingsHandler : IRequestHandler<GetSimilarEmbeddingsQuery, Result<List<GetSimilarEmbeddingsResponse>>>
     {
-        public static async Task<IResult> Handle(this QueryCollectionRequest request)
+        public async Task<Result<List<GetSimilarEmbeddingsResponse>>> Handle(GetSimilarEmbeddingsQuery request, CancellationToken cancellationToken)
         {
             //Get propper collection
             var queryHandlerResult = await request
@@ -16,7 +16,8 @@ namespace RAG.Handlers
 
             if (!queryHandlerResult.IsSuccess)
             {
-                return queryHandlerResult.ToProblemDetails();
+                return Result<List<GetSimilarEmbeddingsResponse>>
+                    .Failure(queryHandlerResult.Error);
             }
 
             var queryHandler = queryHandlerResult.Data;
@@ -30,7 +31,10 @@ namespace RAG.Handlers
                 .GenerateEmbeddingAsync(request.Prompt);
 
             if (!embeddingResult.IsSuccess)
-                return embeddingResult.ToProblemDetails();
+            {
+                return Result<List<GetSimilarEmbeddingsResponse>>
+                   .Failure(embeddingResult.Error);
+            }
 
             //Query collection
             var queryResult = await queryHandler
@@ -41,10 +45,12 @@ namespace RAG.Handlers
 
             if (!queryResult.IsSuccess)
             {
-                return queryResult.ToProblemDetails();
+                return Result<List<GetSimilarEmbeddingsResponse>>
+                    .Failure(queryResult.Error);
             }
 
-            return Results.Ok(queryResult.Data);
+            return Result<List<GetSimilarEmbeddingsResponse>>
+                .Success(queryResult.Data);
         }
     }
 }

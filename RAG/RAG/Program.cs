@@ -1,5 +1,9 @@
 
 using Application.Abstractions;
+using Application.Commands.CreateEmbeddings;
+using Application.Commands.DeleteEmbeddings;
+using Application.Queries;
+using Application.Queries.GetSimilarEmbeddings;
 using Application.Services;
 using ChromaDB.Client;
 using Domain.ProcessedDocument;
@@ -100,6 +104,19 @@ namespace RAG
             // ====================================================================================================
 
             builder.Services.AddScoped<ProcessedDocumentService>();
+
+            // MediatR ============================================================================================
+            builder.Services.AddMediatR(cfg => 
+                cfg.RegisterServicesFromAssembly(typeof(GetEmbeddingsByIdHandler).Assembly));
+
+            builder.Services.AddMediatR(cfg =>
+                cfg.RegisterServicesFromAssembly(typeof(GetSimilarEmbeddingsHandler).Assembly));
+
+            builder.Services.AddMediatR(cfg =>
+                cfg.RegisterServicesFromAssembly(typeof(CreateEmbeddingsCommandHandler).Assembly));
+
+            builder.Services.AddMediatR(cfg =>
+                cfg.RegisterServicesFromAssembly(typeof(DeleteEmbeddingsCommandHandler).Assembly));
 
             var app = builder.Build();
 

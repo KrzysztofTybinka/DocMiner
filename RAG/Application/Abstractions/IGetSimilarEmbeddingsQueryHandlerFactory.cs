@@ -1,4 +1,4 @@
-﻿using Application.Queries;
+﻿using Application.Abstractions;
 using Domain.Abstractions;
 
 namespace Infrastructure.Abstractions

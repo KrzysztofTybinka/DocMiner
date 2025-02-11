@@ -1,4 +1,4 @@
-﻿namespace RAG.Models
+﻿namespace RagApi.ExternalServices
 {
     public class EmbeddingModelSettings
     {

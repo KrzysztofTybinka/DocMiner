@@ -1,8 +1,11 @@
-﻿using Infrastructure.Abstractions;
+﻿using Domain.Abstractions;
+using Infrastructure.Abstractions;
+using MediatR;
 
-namespace RAG.Requests
+
+namespace Application.Commands.DeleteEmbeddings
 {
-    public class DeleteEmbeddingsRequest
+    public class DeleteEmbeddingsCommand : IRequest<Result>
     {
         public IEmbeddingRepositoryFactory EmbeddingsRepositoryFactory { get; set; }
         public string CollectionName { get; set; }

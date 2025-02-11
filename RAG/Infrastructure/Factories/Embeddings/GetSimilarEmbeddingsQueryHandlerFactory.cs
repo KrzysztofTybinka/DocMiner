@@ -1,5 +1,5 @@
 ﻿
-using Application.Queries;
+using Application.Abstractions;
 using Domain.Abstractions;
 using Infrastructure.Abstractions;
 using Infrastructure.Queries.GetSimilarEmbeddings;

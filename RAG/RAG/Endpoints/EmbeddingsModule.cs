@@ -1,7 +1,10 @@
-﻿
-using RAG.Handlers;
+﻿using Application.Commands.CreateEmbeddings;
+using Application.Commands.DeleteEmbeddings;
+using Application.Common;
+using Application.Queries.GetSimilarEmbeddings;
+using MediatR;
+using RAG.Abstractions;
 using RAG.Requests;
-using RAG.Validators;
 
 namespace RAG.Endpoints
 {
@@ -9,40 +12,58 @@ namespace RAG.Endpoints
     {
         public static void AddEmbeddingsEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/Embeddings", async ([AsParameters] CreateEmbeddingRequest request) =>
+            app.MapPost("/Embeddings", async ([AsParameters] CreateEmbeddingRequest request, IMediator mediator) =>
             {
-                var validationResult = request.IsValid();
+                using var memoryStream = new MemoryStream();
+                await request.File.CopyToAsync(memoryStream);
+                var fileData = new FileData
+                {
+                    FileName = request.File.FileName,
+                    Content = memoryStream.ToArray()
+                };
 
-                if (!validationResult.IsValid)
-                    return Results.BadRequest(validationResult.Errors);
+                var command = new CreateEmbeddingsCommand
+                {
+                    File = fileData,
+                    CollectionName = request.CollectionName,
+                    ProcessedDocumentService = request.ProcessedDocumentService,
+                    EmbeddingGeneratorFactory = request.EmbeddingGeneratorFactory,
+                    EmbeddingsRepositoryFactory = request.EmbeddingsRepositoryFactory,
+                    NumberOfTokens = request.NumberOfTokens
+                };
 
-                return await request.Handle();
+                var result = await mediator.Send(command);
+
+                return result.IsSuccess ?
+                       Results.Ok("Embeddings created.") :
+                       result.ToProblemDetails();
             }).DisableAntiforgery();
 
-            app.MapPost("/QueryEmbeddings", async ([AsParameters] QueryCollectionRequest request) =>
+            app.MapPost("/QueryEmbeddings", async ([AsParameters] GetSimilarEmbeddingsQuery request, IMediator mediator) =>
             {
-                var validationResult = request.IsValid();
+                var result = await mediator.Send(request);
 
-                if (!validationResult.IsValid)
-                    return Results.BadRequest(validationResult.Errors);
-
-                return await request.Handle();
+                return result.IsSuccess ?
+                    Results.Ok(result.Data) :
+                    result.ToProblemDetails();
             });
 
-            app.MapGet("/Embeddings", async ([AsParameters] GetCollectionRequest request) =>
+            app.MapGet("/Embeddings", async ([AsParameters] GetEmbeddingsQuery request, IMediator mediator) =>
             {
-                if (String.IsNullOrEmpty(request.CollectionName))
-                    return Results.BadRequest("Collection name cannot be empty.");
+                var result = await mediator.Send(request);
 
-                return await request.Handle();
+                return result.IsSuccess ?
+                    Results.Ok(result.Data) :
+                    result.ToProblemDetails();
             });
 
-            app.MapDelete("/Embeddings", async ([AsParameters] DeleteEmbeddingsRequest request) =>
+            app.MapDelete("/Embeddings", async ([AsParameters] DeleteEmbeddingsCommand request, IMediator mediator) =>
             {
-                if (String.IsNullOrEmpty(request.CollectionName))
-                    return Results.BadRequest("Collection name cannot be empty.");
+                var result = await mediator.Send(request);
 
-                return await request.Handle();
+                return result.IsSuccess ?
+                    Results.Ok("Embeddings deleted.") :
+                    result.ToProblemDetails();
             });
         }
         

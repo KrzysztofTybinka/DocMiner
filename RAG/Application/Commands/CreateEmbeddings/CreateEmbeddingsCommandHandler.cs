@@ -1,13 +1,14 @@
-﻿using RAG.Requests;
-using RAG.Abstractions;
+﻿using Application.Responses;
+using Domain.Abstractions;
 using Domain.Embedings;
-using Infrastructure.Repositories.DocumentRepository;
+using MediatR;
 
-namespace RAG.Handlers
+
+namespace Application.Commands.CreateEmbeddings
 {
-    public static class CreateEmbeddingsRequestHandler
+    public class CreateEmbeddingsCommandHandler : IRequestHandler<CreateEmbeddingsCommand, Result>
     {
-        public static async Task<IResult> Handle(this CreateEmbeddingRequest request)
+        public async Task<Result> Handle(CreateEmbeddingsCommand request, CancellationToken cancellationToken)
         {
             //Get propper collection
             var embeddingsRepositoryResult = await request
@@ -16,13 +17,11 @@ namespace RAG.Handlers
 
             if (!embeddingsRepositoryResult.IsSuccess)
             {
-                return embeddingsRepositoryResult.ToProblemDetails();
+                return Result.Failure(embeddingsRepositoryResult.Error);
             }
 
             //Ocr the file
-            using var memoryStream = new MemoryStream();
-            await request.File.CopyToAsync(memoryStream);
-            var bytes = memoryStream.ToArray();
+            var bytes = request.File.Content;
 
             var chunksResult = await request.ProcessedDocumentService
                 .CreateChunksAsync(bytes,
@@ -30,7 +29,7 @@ namespace RAG.Handlers
                     request.NumberOfTokens);
 
             if (!chunksResult.IsSuccess)
-                return chunksResult.ToProblemDetails();
+                return Result.Failure(chunksResult.Error);
 
             //Get embedding service
             var embeddingModel = request.EmbeddingGeneratorFactory
@@ -41,22 +40,28 @@ namespace RAG.Handlers
                 .GenerateEmbeddingsAsync(chunksResult.Data);
 
             if (!embeddingResult.IsSuccess)
-                return embeddingResult.ToProblemDetails();
+                return Result.Failure(embeddingResult.Error);
 
             //Assign source name
             string fileName = Path.GetFileNameWithoutExtension(request.File.FileName);
 
-            embeddingResult.Data.ForEach(e => 
-                e.Details = new EmbeddingDetails() 
+            embeddingResult.Data.ForEach(e =>
+                e.Details = new EmbeddingDetails()
                 {
-                    Source = fileName 
+                    Source = fileName
                 });
 
             //Save embeddings into a collection
             var embeddingsRepository = embeddingsRepositoryResult.Data;
-            await embeddingsRepository.UploadEmbeddingsAsync(embeddingResult.Data);
+            var result = await embeddingsRepository
+                .UploadEmbeddingsAsync(embeddingResult.Data);
 
-            return Results.Ok("Embeddings created.");
+            if (!result.IsSuccess)
+            {
+                return Result.Failure(result.Error);
+            }
+
+            return Result.Success();
         }
     }
 }

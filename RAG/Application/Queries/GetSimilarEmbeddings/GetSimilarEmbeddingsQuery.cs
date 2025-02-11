@@ -1,12 +1,12 @@
 ﻿using Application.Abstractions;
-using ChromaDB.Client.Models;
-using Domain.Embedings;
+using Application.Responses;
+using Domain.Abstractions;
 using Infrastructure.Abstractions;
-using Infrastructure.Repositories.ChromaCollection;
+using MediatR;
 
-namespace RAG.Requests
+namespace Application.Queries.GetSimilarEmbeddings
 {
-    public class QueryCollectionRequest
+    public class GetSimilarEmbeddingsQuery : IRequest<Result<List<GetSimilarEmbeddingsResponse>>>
     {
         public string CollectionName { get; set; }
         public int Nresults { get; set; }

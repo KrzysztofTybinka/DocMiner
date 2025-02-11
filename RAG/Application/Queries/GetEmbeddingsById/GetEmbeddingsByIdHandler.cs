@@ -1,14 +1,14 @@
-﻿using ChromaDB.Client;
-using ChromaDB.Client.Models;
+﻿using Application.Responses;
 using Domain.Abstractions;
-using RAG.Abstractions;
+using MediatR;
 using RAG.Requests;
 
-namespace RAG.Handlers
+
+namespace Application.Queries
 {
-    public static class GetCollectionRequestHandler
+    public class GetEmbeddingsByIdHandler : IRequestHandler<GetEmbeddingsQuery, Result<List<GetEmbeddingsByIdResponse>>>
     {
-        public static async Task<IResult> Handle(this GetCollectionRequest request)
+        public async Task<Result<List<GetEmbeddingsByIdResponse>>> Handle(GetEmbeddingsQuery request, CancellationToken cancellationToken)
         {
             //Get propper collection
             var queryhandlerResult = await request
@@ -17,12 +17,12 @@ namespace RAG.Handlers
 
             if (!queryhandlerResult.IsSuccess)
             {
-                return queryhandlerResult.ToProblemDetails();
+                return Result<List<GetEmbeddingsByIdResponse>>.Failure(queryhandlerResult.Error);
             }
 
             var queryHandler = queryhandlerResult.Data;
 
-            var ids = request.Ids == null || request.Ids.Length == 0 ? null 
+            var ids = request.Ids == null || request.Ids.Length == 0 ? null
                 : request.Ids
                 .Select(id => new Guid(id))
                 .ToList();
@@ -34,10 +34,10 @@ namespace RAG.Handlers
 
             if (!result.IsSuccess)
             {
-                return result.ToProblemDetails();
+                return Result<List<GetEmbeddingsByIdResponse>>.Failure(result.Error);
             }
 
-            return Results.Ok(result.Data);
+            return Result<List<GetEmbeddingsByIdResponse>>.Success(result.Data);
         }
     }
 }

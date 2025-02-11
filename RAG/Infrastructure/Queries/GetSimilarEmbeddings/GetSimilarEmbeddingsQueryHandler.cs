@@ -1,5 +1,5 @@
 ﻿
-using Application.Queries;
+using Application.Abstractions;
 using Application.Responses;
 using ChromaDB.Client;
 using Domain.Abstractions;

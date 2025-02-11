@@ -1,9 +1,8 @@
-﻿
-using Application.Responses;
+﻿using Application.Responses;
 using Domain.Abstractions;
 using Domain.Embedings;
 
-namespace Application.Queries
+namespace Application.Abstractions
 {
     public interface IGetSimilarEmbeddingsQueryHandler
     {

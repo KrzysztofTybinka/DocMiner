@@ -12,7 +12,7 @@ namespace RAG.Endpoints
     {
         public static void AddEmbeddingsEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/Embeddings", async ([AsParameters] CreateEmbeddingRequest request, IMediator mediator) =>
+            app.MapPost("/embeddings", async ([AsParameters] CreateEmbeddingRequest request, IMediator mediator) =>
             {
                 using var memoryStream = new MemoryStream();
                 await request.File.CopyToAsync(memoryStream);
@@ -39,7 +39,7 @@ namespace RAG.Endpoints
                        result.ToProblemDetails();
             }).DisableAntiforgery();
 
-            app.MapPost("/QueryEmbeddings", async ([AsParameters] GetSimilarEmbeddingsQuery request, IMediator mediator) =>
+            app.MapPost("/query-embeddings", async ([AsParameters] GetSimilarEmbeddingsQuery request, IMediator mediator) =>
             {
                 var result = await mediator.Send(request);
 
@@ -48,7 +48,7 @@ namespace RAG.Endpoints
                     result.ToProblemDetails();
             });
 
-            app.MapGet("/Embeddings", async ([AsParameters] GetEmbeddingsQuery request, IMediator mediator) =>
+            app.MapGet("/embeddings", async ([AsParameters] GetEmbeddingsQuery request, IMediator mediator) =>
             {
                 var result = await mediator.Send(request);
 
@@ -57,7 +57,7 @@ namespace RAG.Endpoints
                     result.ToProblemDetails();
             });
 
-            app.MapDelete("/Embeddings", async ([AsParameters] DeleteEmbeddingsCommand request, IMediator mediator) =>
+            app.MapDelete("/embeddings", async ([AsParameters] DeleteEmbeddingsCommand request, IMediator mediator) =>
             {
                 var result = await mediator.Send(request);
 

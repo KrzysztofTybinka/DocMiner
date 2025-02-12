@@ -1,5 +1,4 @@
-﻿using Application.Responses;
-using Domain.Abstractions;
+﻿using Domain.Abstractions;
 using Domain.Embedings;
 using MediatR;
 

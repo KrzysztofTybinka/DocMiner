@@ -1,19 +1,20 @@
-﻿using Domain.Abstractions;
+﻿
+using Domain.Abstractions;
 using Domain.Embedings;
 using Infrastructure.Configuration;
-using Infrastructure.Responses;
+using Infrastructure.Responses.EmbeddingModels;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Text;
 
 namespace Infrastructure.Services.EmbeddingService
 {
-    public class OpenAIEmbeddingService : IEmbeddingGenerator
+    public class OllamaEmbeddingService : IEmbeddingGenerator
     {
         private readonly EmbeddingModelSettings _settings;
         private readonly HttpClient _httpClient;
 
-        public OpenAIEmbeddingService(IOptions<EmbeddingModelSettings> embeddingModelSettings,
+        public OllamaEmbeddingService(IOptions<EmbeddingModelSettings> embeddingModelSettings,
             IHttpClientFactory httpClientFactory)
         {
             _settings = embeddingModelSettings.Value;
@@ -22,27 +23,25 @@ namespace Infrastructure.Services.EmbeddingService
 
         public async Task<Result<Embedding>> GenerateEmbeddingAsync(string text)
         {
-            var result = await CallOpenAIApi([text]);
+            var result = await CallOllamaApi([text]);
             return result.IsSuccess
                 ? Result<Embedding>.Success(result.Data.First())
                 : Result<Embedding>.Failure(result.Error);
         }
 
         public async Task<Result<List<Embedding>>> GenerateEmbeddingsAsync(List<string> textPieces)
-            => await CallOpenAIApi(textPieces);
+            => await CallOllamaApi(textPieces);
 
-        public async Task<Result<List<Embedding>>> CallOpenAIApi(List<string> textPieces)
+        public async Task<Result<List<Embedding>>> CallOllamaApi(List<string> textPieces)
         {
             var requestPayload = new
             {
                 model = _settings.ModelName,
-                input = textPieces,
-                encoding_format = "float"
+                input = textPieces
             };
 
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.Token}");
 
             var response = await _httpClient.PostAsync(_settings.Url, content);
 
@@ -54,18 +53,18 @@ namespace Infrastructure.Services.EmbeddingService
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            var openAIResponse = JsonConvert.DeserializeObject<OpenAICreateEmbeddingsResponse>(jsonResponse);
+            var ollamaResponse = JsonConvert.DeserializeObject<OllamaCreateEmbeddingsResponse>(jsonResponse);
 
-            if (openAIResponse == null)
+            if (ollamaResponse == null)
                 return Result<List<Embedding>>.Failure(EmbeddingServiceErrors.EmptyResponse);
 
             var embeddings = new List<Embedding>();
 
-            foreach (var dataItem in openAIResponse.Data)
+            foreach (var dataItem in ollamaResponse.Data)
             {
                 var embedding = Embedding.Create(
                     Guid.NewGuid(),
-                    textPieces.ToList()[dataItem.Index],
+                    textPieces[dataItem.Index],
                     dataItem.Embedding.ToArray());
 
                 if (!embedding.IsSuccess)
@@ -78,7 +77,5 @@ namespace Infrastructure.Services.EmbeddingService
 
             return Result<List<Embedding>>.Success(embeddings);
         }
-
-
     }
 }

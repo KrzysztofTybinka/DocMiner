@@ -1,7 +1,6 @@
-﻿
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
-namespace Infrastructure.Responses
+namespace Infrastructure.Responses.EmbeddingModels
 {
     public class OllamaCreateEmbeddingsResponse
     {

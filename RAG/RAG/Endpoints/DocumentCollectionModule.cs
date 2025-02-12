@@ -6,7 +6,7 @@ namespace RAG.Endpoints
     {
         public static void AddDocumentCollectionEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/DocumentCollection", async (string collectionName, ChromaCollectionRepository repository) =>
+            app.MapPost("/document-collection", async (string collectionName, ChromaCollectionRepository repository) =>
             {
                 if (string.IsNullOrEmpty(collectionName))
                     return Results.BadRequest("Collection name cannot be empty.");
@@ -15,7 +15,7 @@ namespace RAG.Endpoints
                 return Results.Ok("Collection created");
             });
 
-            app.MapDelete("/DocumentCollection", async (string collectionName, ChromaCollectionRepository repository) =>
+            app.MapDelete("/document-collection", async (string collectionName, ChromaCollectionRepository repository) =>
             {
                 if (string.IsNullOrEmpty(collectionName))
                     return Results.BadRequest("Collection name cannot be empty.");
@@ -24,7 +24,7 @@ namespace RAG.Endpoints
                 return Results.Ok("Collection deleted");
             });
 
-            app.MapGet("/DocumentCollections", async (ChromaCollectionRepository repository) =>
+            app.MapGet("/document-collections", async (ChromaCollectionRepository repository) =>
             {
                 var result = await repository.ListDocumentCollections();
                 return Results.Ok(result);

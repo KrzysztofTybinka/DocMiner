@@ -2,6 +2,7 @@
 using Application.Abstractions;
 using Application.Commands.CreateEmbeddings;
 using Application.Commands.DeleteEmbeddings;
+using Application.Commands.GenerateResponse;
 using Application.Queries;
 using Application.Queries.GetSimilarEmbeddings;
 using Application.Services;
@@ -11,9 +12,9 @@ using Infrastructure.Abstractions;
 using Infrastructure.Factories;
 using Infrastructure.Factories.Embeddings;
 using Infrastructure.Repositories.ChromaCollection;
-using Infrastructure.Services.EmbeddingService;
 using Infrastructure.Services.Ocr;
 using RAG.Endpoints;
+using RagApi.Endpoints;
 
 
 namespace RAG
@@ -32,7 +33,7 @@ namespace RAG
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            //Register OCR service =================================================================================
+            //Register OCR service =============================================================================================
             var tesseractUrl = builder.Configuration["ExternalServices:OcrUrl"] ??
                 throw new ArgumentNullException("Ocr url address was empty.");
 
@@ -41,7 +42,7 @@ namespace RAG
                 client.BaseAddress = new Uri(tesseractUrl);
             });
 
-            // Register Embedding service client ==================================================================
+            // Register Embedding service client ===============================================================================
             builder.Services.AddHttpClient("EmbeddingModelClient", client =>
             {
                 client.BaseAddress = new Uri(builder.Configuration["EmbeddingModelSettings:Url"]!);
@@ -54,6 +55,20 @@ namespace RAG
                 builder.Configuration.GetSection("EmbeddingModelSettings")
             );
 
+            // Register Language model service client ==========================================================================
+            builder.Services.AddHttpClient("LanguageModelClient", client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["LanguageModelSettings:Url"]!);
+            });
+
+            // Register the factory and settings
+            builder.Services.AddScoped<IAnswearGeneratorFactory, AnswearGeneratorFactory>();
+
+            builder.Services.Configure<Infrastructure.Configuration.LanguageModelSettings>(
+                builder.Configuration.GetSection("LanguageModelSettings")
+            );
+
+            // Chroma configuration ============================================================================================
             var chromaApiUrl = builder.Configuration["ExternalServices:ChromaDbUrl"];
 
             if (string.IsNullOrEmpty(chromaApiUrl))
@@ -62,7 +77,7 @@ namespace RAG
             // Register ChromaConfigurationOptions as a singleton
             builder.Services.AddSingleton(new ChromaConfigurationOptions(chromaApiUrl));
 
-            // Register CollectionsRepository =====================================================================
+            // Register CollectionsRepository ==================================================================================
             builder.Services.AddSingleton(provider =>
             {
                 var options = provider.GetRequiredService<ChromaConfigurationOptions>();
@@ -71,7 +86,7 @@ namespace RAG
                 return new ChromaCollectionRepository(chromaClient);
             });
 
-            // Register ChromaCollectionClientFactory =============================================================
+            // Register ChromaCollectionClientFactory ==========================================================================
             builder.Services.AddSingleton(provider =>
             {
                 var options = provider.GetRequiredService<ChromaConfigurationOptions>();
@@ -80,32 +95,32 @@ namespace RAG
                 return new ChromaCollectionClientFactory(httpClient, options, collectionRepository);
             });
 
-            // Register EmbeddingsRepository factory ===============================================================
+            // Register EmbeddingsRepository factory ===========================================================================
             builder.Services.AddSingleton<IEmbeddingRepositoryFactory>(provider =>
             {
                 return new EmbeddingRepositoryFactory(
                     provider.GetRequiredService<ChromaCollectionClientFactory>());
             });
 
-            // Register GetSimilarEmbeddingsQueryHandler factory ==================================================
+            // Register GetSimilarEmbeddingsQueryHandler factory ===============================================================
             builder.Services.AddSingleton<IGetSimilarEmbeddingsQueryHandlerFactory>(provider =>
             {
                 return new GetSimilarEmbeddingsQueryHandlerFactory(
                     provider.GetRequiredService<ChromaCollectionClientFactory>());
             });
 
-            // Register GetEmbeddingsByIdQueryHandler factory =====================================================
+            // Register GetEmbeddingsByIdQueryHandler factory ==================================================================
             builder.Services.AddSingleton<IGetEmbeddingsByIdQueryHandlerFactory>(provider =>
             {
                 return new GetEmbeddingsByIdQueryHandlerFactory(
                     provider.GetRequiredService<ChromaCollectionClientFactory>());
             });
 
-            // ====================================================================================================
+            // =================================================================================================================
 
             builder.Services.AddScoped<ProcessedDocumentService>();
 
-            // MediatR ============================================================================================
+            // MediatR =========================================================================================================
             builder.Services.AddMediatR(cfg => 
                 cfg.RegisterServicesFromAssembly(typeof(GetEmbeddingsByIdHandler).Assembly));
 
@@ -118,6 +133,9 @@ namespace RAG
             builder.Services.AddMediatR(cfg =>
                 cfg.RegisterServicesFromAssembly(typeof(DeleteEmbeddingsCommandHandler).Assembly));
 
+            builder.Services.AddMediatR(cfg =>
+                cfg.RegisterServicesFromAssembly(typeof(GenerateResponseCommandHandler).Assembly));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -129,6 +147,7 @@ namespace RAG
 
             app.AddDocumentCollectionEndpoints();
             app.AddEmbeddingsEndpoints();
+            app.AddAnswearGeneratorEndpoints();
 
             app.UseHttpsRedirection();
             app.UseAuthorization();

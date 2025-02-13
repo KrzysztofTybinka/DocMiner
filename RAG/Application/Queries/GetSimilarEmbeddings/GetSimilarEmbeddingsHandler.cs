@@ -40,7 +40,7 @@ namespace Application.Queries.GetSimilarEmbeddings
             var queryResult = await queryHandler
                 .Handle(embeddingResult.Data,
                 request.Source,
-                request.MinDistance,
+                request.MaxDistance,
                 request.Nresults);
 
             if (!queryResult.IsSuccess)

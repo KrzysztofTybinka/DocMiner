@@ -20,7 +20,7 @@ namespace Infrastructure.Queries.GetSimilarEmbeddings
         public async Task<Result<List<GetSimilarEmbeddingsResponse>>> Handle(
             Embedding embedding,
             string? sourceDetails,
-            double minDistance,
+            double maxDistance,
             int topResults = 10)
         {
             ChromaWhereOperator? whereClause = null;
@@ -44,7 +44,7 @@ namespace Infrastructure.Queries.GetSimilarEmbeddings
             var mapperResult = result.FromChromaCollectionQueryEntryToSimilarEmbeddingsResponse();
 
             mapperResult = mapperResult
-                .Where(x => x.Distance >= minDistance)
+                .Where(x => x.Distance <= maxDistance)
                 .ToList();
 
             return Result<List<GetSimilarEmbeddingsResponse>>.Success(mapperResult);

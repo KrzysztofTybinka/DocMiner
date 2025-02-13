@@ -12,7 +12,7 @@ namespace Application.Queries.GetSimilarEmbeddings
         public int Nresults { get; set; }
         public string Prompt { get; set; }
         public string? Source { get; set; }
-        public double MinDistance { get; set; }
+        public double MaxDistance { get; set; }
         public IGetSimilarEmbeddingsQueryHandlerFactory QueryHandlerFactory { get; set; }
         public IEmbeddingGeneratorFactory EmbeddingGeneratorFactory { get; set; }
         public IEmbeddingRepositoryFactory EmbeddingsRepositoryFactory { get; set; }

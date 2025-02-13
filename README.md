@@ -159,6 +159,26 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
   WhereDocumentNames | Array | No | A list of document names whose embeddings should be deleted.
   WhereChunkIds | Array | No | A list of chunk IDs whose embeddings should be deleted.
 
+- **Generate Answear**:
+  ```http
+  POST /GenerateAnswer
+  {
+    "question": "What is the summary of this document?",
+    "retrievedData": "Extracted content from the document...",
+    "promptWrapper": "Using the following data: {retrievedData}, answer the question: {question}",
+    "parameters": {
+      "temperature": 0.7,
+      "maxTokens": 100
+    }
+  }
+  ```
+    Parameter | Type | Required | Description
+  --- | --- | --- | --- |
+  Question | String | Yes | The question related to the retrieved data.
+  RetrievedData | String | Yes | The extracted data that will be used to generate the answer.
+  PromptWrapper | String | Yes | A template that structures the final prompt. It must include {retrievedData} (which will be replaced with the retrieved data) and {question} (which will be replaced with the question).
+  Parameters | JSON | No | Additional settings for the LLM. You can pass any parameters supported by the model (e.g., temperature, maxTokens).
+
 ---
 
 ## Licensing

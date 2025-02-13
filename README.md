@@ -131,7 +131,7 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
     "collectionName": "example-collection",
     "prompts": ["search query", "second query"],
     "Nresults": 10,
-    "Source": document.pdf,
+    "Source": "document.pdf",
     "MinDistance": 0.7
   }
   ```

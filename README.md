@@ -85,7 +85,7 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
 
 - **Create collection**:
   ```http
-  POST /DocumentCollection
+  POST /document-collection
   {
     "collectionName": "example-collection"
   }
@@ -96,12 +96,12 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
   
 - **List all collections**:
   ```http
-  GET /DocumentCollections
+  GET /document-collections
   ```
   
 - **Delete collection**:
   ```http
-  DELETE /DocumentCollection/{collectionName}
+  DELETE /document-collection/{collectionName}
   ```
   Parameter | Type | Required | Description
   --- | --- | --- | --- |
@@ -111,7 +111,7 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
 
 - **Add Document to Collection**:
   ```http
-  POST /Embeddings
+  POST /embeddings
   {
     "collectionName": "example-collection",
     "numberOfTokens": "50"
@@ -124,13 +124,15 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
   NumberOfTokens | Int | Yes | Number of tokens will be used to chunk document. More tokens, more context in one chunk.
   FilePath | String | Yes | Path to the document that will be uploaded.
   
-- **Query Collection**:
+- **Query Embeddings**:
   ```http
-  POST /QueryEmbeddings
+  POST /query-embeddings
   {
     "collectionName": "example-collection",
     "prompts": ["search query", "second query"],
-    "Nresults": 10
+    "Nresults": 10,
+    "Source": document.pdf,
+    "MinDistance": 0.7
   }
   ```
   Parameter | Type | Required | Description
@@ -138,10 +140,12 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
   CollectionName | String | Yes | Name of a collection to be queried.
   Prompts | Array | Yes | Prompts to query the collection.
   Nresults | Int | Yes | Number of query results, sorted by most similar to the least similar.
+  Source | String | No | Document source
+  MaxDistance | Double| Yes | Minimal distance between input vector and queried vectors defined as cosine distance, lower distance means greater similarity. Min 0, max 1
   
 - **Get Embeddings**:
   ```http
-  GET /Embeddings?CollectionName=example-collection&WhereDocumentNames=doc1
+  GET /embeddings?CollectionName=example-collection&WhereDocumentNames=doc1
   ```
   Parameter | Type | Required | Description
   --- | --- | --- | --- |
@@ -151,7 +155,7 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
   
 - **Delete Embedding**:
   ```http
-  DELETE /Embeddings?collectionName=example-collection&whereDocumentNames=doc1,doc2&whereChunkIds=e0984299-ac54-40a0-9d01-8d85b135f2c6
+  DELETE /embeddings?collectionName=example-collection&whereDocumentNames=doc1,doc2&whereChunkIds=e0984299-ac54-40a0-9d01-8d85b135f2c6
   ```
     Parameter | Type | Required | Description
   --- | --- | --- | --- |
@@ -161,7 +165,7 @@ This Docker-based Retrieval-Augmented Generation (RAG) system integrates Tessera
 
 - **Generate Answear**:
   ```http
-  POST /GenerateAnswer
+  POST /generate-answer
   {
     "question": "What is the summary of this document?",
     "retrievedData": "Extracted content from the document...",

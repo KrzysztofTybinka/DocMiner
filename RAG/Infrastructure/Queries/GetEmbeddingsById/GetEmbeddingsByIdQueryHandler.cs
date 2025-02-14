@@ -28,7 +28,7 @@ namespace Infrastructure.Queries.GetEmbeddingsById
                 idStrings = ids.Select(id => id.ToString()).ToList();
             }
 
-            if (!string.IsNullOrEmpty(sourceDetails))
+            if (!string.IsNullOrWhiteSpace(sourceDetails))
             {
                 whereClause = ChromaWhereOperator.Equal("source", sourceDetails);
             }

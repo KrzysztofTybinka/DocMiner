@@ -16,12 +16,12 @@ namespace Domain.ProcessedDocument
 
         public static Result<ProcessedDocument> Create(string name, string content)
         {
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrWhiteSpace(name))
             {
                 return Result<ProcessedDocument>
                     .Failure(ProcessedDocumentError.NameEmpty);
             }
-            if (string.IsNullOrEmpty(content))
+            if (string.IsNullOrWhiteSpace(content))
             {
                 return Result<ProcessedDocument>
                     .Failure(ProcessedDocumentError.NoContent);

@@ -25,7 +25,7 @@ namespace Infrastructure.Queries.GetSimilarEmbeddings
         {
             ChromaWhereOperator? whereClause = null;
 
-            if (!string.IsNullOrEmpty(sourceDetails))
+            if (!string.IsNullOrWhiteSpace(sourceDetails))
             {
                 whereClause = ChromaWhereOperator.Equal("source", sourceDetails);
             }

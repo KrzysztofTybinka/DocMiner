@@ -22,7 +22,7 @@ namespace Domain.Embedings
 
         public static Result<Embedding> Create(Guid id, string text, float[] textEmbedding, EmbeddingDetails? details = null)
         {
-            if (string.IsNullOrEmpty(text))
+            if (string.IsNullOrWhiteSpace(text))
             {
                 return Result<Embedding>.Failure(EmbeddingErrors.TextEmpty);
             }

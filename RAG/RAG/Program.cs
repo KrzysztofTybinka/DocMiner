@@ -71,7 +71,7 @@ namespace RAG
             // Chroma configuration ============================================================================================
             var chromaApiUrl = builder.Configuration["ExternalServices:ChromaDbUrl"];
 
-            if (string.IsNullOrEmpty(chromaApiUrl))
+            if (string.IsNullOrWhiteSpace(chromaApiUrl))
                 throw new ArgumentNullException(nameof(chromaApiUrl), "ChromaDb url is not configured.");
 
             // Register ChromaConfigurationOptions as a singleton

@@ -25,7 +25,7 @@ namespace Domain.Message
         /// that will produce the final message after replacement.
         public static Result<Message> Create(string question, string retrievedData, string promptWrapper)
         {
-            if (string.IsNullOrEmpty(question))
+            if (string.IsNullOrWhiteSpace(question))
             {
                 return Result<Message>.Failure(MessageErrors.QuestionEmpty);
             }

@@ -8,7 +8,7 @@ namespace RAG.Endpoints
         {
             app.MapPost("/document-collection", async (string collectionName, ChromaCollectionRepository repository) =>
             {
-                if (string.IsNullOrEmpty(collectionName))
+                if (string.IsNullOrWhiteSpace(collectionName))
                     return Results.BadRequest("Collection name cannot be empty.");
 
                 await repository.CreateDocumentCollection(collectionName);
@@ -17,7 +17,7 @@ namespace RAG.Endpoints
 
             app.MapDelete("/document-collection", async (string collectionName, ChromaCollectionRepository repository) =>
             {
-                if (string.IsNullOrEmpty(collectionName))
+                if (string.IsNullOrWhiteSpace(collectionName))
                     return Results.BadRequest("Collection name cannot be empty.");
 
                 await repository.DeleteDocumentCollection(collectionName);

@@ -25,7 +25,7 @@ namespace Infrastructure.Repositories.DocumentRepository
                 .Select(e =>
                 {
                     var source = e.Details?.Source;
-                    return !string.IsNullOrEmpty(source)
+                    return !string.IsNullOrWhiteSpace(source)
                         ? new Dictionary<string, object> { { "source", source } }
                         : new Dictionary<string, object>(); // Return an empty dictionary if null
                 })

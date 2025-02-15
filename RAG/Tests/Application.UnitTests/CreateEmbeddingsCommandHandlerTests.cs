@@ -1,7 +1,7 @@
 ﻿using Application.Abstractions;
 using Application.Commands.CreateEmbeddings;
+using Application.Commands.ProcessDocument;
 using Application.Common;
-using Application.Services;
 using Domain.Abstractions;
 using Domain.Embedings;
 using Domain.ProcessedDocument;
@@ -17,7 +17,7 @@ namespace Tests.Application.UnitTests
         private readonly Mock<IEmbeddingRepositoryFactory> _repoFactoryMock = new();
         private readonly Mock<IEmbeddingGenerator> _generatorMock = new();
         private readonly Mock<IEmbeddingRepository> _repoMock = new();
-        private readonly ProcessedDocumentService _docService;
+        private readonly ProcessDocumentCommand _docService;
         private readonly CreateEmbeddingsCommandHandler _handler;
 
         public CreateEmbeddingsCommandHandlerTests()
@@ -28,7 +28,7 @@ namespace Tests.Application.UnitTests
                     ProcessedDocument.Create("test.txt", "content").Data
                 ));
 
-            _docService = new ProcessedDocumentService(docGeneratorMock.Object);
+            _docService = new ProcessDocumentCommand(docGeneratorMock.Object);
 
             _repoFactoryMock.Setup(f => f.CreateRepositoryAsync(It.IsAny<string>()))
                 .ReturnsAsync(Result<IEmbeddingRepository>.Success(_repoMock.Object));
@@ -36,7 +36,11 @@ namespace Tests.Application.UnitTests
             _generatorFactoryMock.Setup(f => f.CreateEmbeddingGenerator())
                 .Returns(_generatorMock.Object);
 
-            _handler = new CreateEmbeddingsCommandHandler();
+            _handler = new CreateEmbeddingsCommandHandler(
+                _docService,
+                _generatorFactoryMock.Object,
+                _repoFactoryMock.Object
+            );
         }
 
         [Fact]
@@ -67,12 +71,17 @@ namespace Tests.Application.UnitTests
                     ProcessedDocumentError.NoContent
                 ));
 
-            var failingDocService = new ProcessedDocumentService(docServiceMock.Object);
+            var failingDocService = new ProcessDocumentCommand(docServiceMock.Object);
             var command = CreateValidCommand();
-            command.ProcessedDocumentService = failingDocService;
+
+            var handlerWithFailingDocService = new CreateEmbeddingsCommandHandler(
+                failingDocService,
+                _generatorFactoryMock.Object,
+                _repoFactoryMock.Object
+            );
 
             // Act
-            var result = await _handler.Handle(command, CancellationToken.None);
+            var result = await handlerWithFailingDocService.Handle(command, CancellationToken.None);
 
             // Assert
             Assert.False(result.IsSuccess);
@@ -132,9 +141,6 @@ namespace Tests.Application.UnitTests
         {
             File = new FileData() { Content = new byte[10], FileName = "test.txt" },
             CollectionName = "test-collection",
-            ProcessedDocumentService = _docService,
-            EmbeddingGeneratorFactory = _generatorFactoryMock.Object,
-            EmbeddingsRepositoryFactory = _repoFactoryMock.Object,
             NumberOfTokens = 50
         };
     }

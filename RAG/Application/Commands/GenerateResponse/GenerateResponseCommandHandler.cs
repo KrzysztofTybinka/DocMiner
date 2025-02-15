@@ -1,5 +1,6 @@
 ﻿
 
+using Application.Abstractions;
 using Application.Commands.CreateEmbeddings;
 using Domain.Abstractions;
 using Domain.Message;
@@ -9,6 +10,12 @@ namespace Application.Commands.GenerateResponse
 {
     public class GenerateResponseCommandHandler : IRequestHandler<GenerateResponseCommand, Result<string>>
     {
+        private IAnswearGeneratorFactory _answearGeneratorFactory { get; set; }
+        public GenerateResponseCommandHandler(IAnswearGeneratorFactory answearGeneratorFactory)
+        {
+            _answearGeneratorFactory = answearGeneratorFactory;
+        }
+
         public async Task<Result<string>> Handle(GenerateResponseCommand request, CancellationToken cancellationToken)
         {
             //Create message
@@ -23,7 +30,7 @@ namespace Application.Commands.GenerateResponse
             }
 
             //Create proper generator
-            var generator = request.AnswearGeneratorFactory
+            var generator = _answearGeneratorFactory
                 .CreateAnswearGenerator(request.Parameters);
 
             //Ask language model a question

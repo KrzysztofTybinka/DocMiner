@@ -1,8 +1,5 @@
-﻿using Application.Abstractions;
-using Application.Common;
-using Application.Services;
+﻿using Application.Common;
 using Domain.Abstractions;
-using Infrastructure.Abstractions;
 using MediatR;
 
 namespace Application.Commands.CreateEmbeddings
@@ -11,9 +8,6 @@ namespace Application.Commands.CreateEmbeddings
     {
         public FileData File { get; set; }
         public string CollectionName { get; set; }
-        public ProcessedDocumentService ProcessedDocumentService { get; set; }
-        public IEmbeddingGeneratorFactory EmbeddingGeneratorFactory { get; set; }
-        public IEmbeddingRepositoryFactory EmbeddingsRepositoryFactory { get; set; }
         public int NumberOfTokens { get; set; } = 50;
     }
 }

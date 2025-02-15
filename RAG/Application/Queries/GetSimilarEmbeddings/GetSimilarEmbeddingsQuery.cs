@@ -13,8 +13,5 @@ namespace Application.Queries.GetSimilarEmbeddings
         public string Prompt { get; set; }
         public string? Source { get; set; }
         public double MaxDistance { get; set; }
-        public IGetSimilarEmbeddingsQueryHandlerFactory QueryHandlerFactory { get; set; }
-        public IEmbeddingGeneratorFactory EmbeddingGeneratorFactory { get; set; }
-        public IEmbeddingRepositoryFactory EmbeddingsRepositoryFactory { get; set; }
     }
 }

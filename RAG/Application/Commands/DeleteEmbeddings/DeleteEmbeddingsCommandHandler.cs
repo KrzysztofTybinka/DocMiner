@@ -1,16 +1,24 @@
 ﻿
 using Domain.Abstractions;
+using Infrastructure.Abstractions;
 using MediatR;
 
 namespace Application.Commands.DeleteEmbeddings
 {
     public class DeleteEmbeddingsCommandHandler : IRequestHandler<DeleteEmbeddingsCommand, Result>
     {
+        private IEmbeddingRepositoryFactory _embeddingsRepositoryFactory { get; set; }
+
+        public DeleteEmbeddingsCommandHandler(
+            IEmbeddingRepositoryFactory embeddingsRepositoryFactory)
+        {
+            _embeddingsRepositoryFactory = embeddingsRepositoryFactory;
+        }
+
         public async Task<Result> Handle(DeleteEmbeddingsCommand request, CancellationToken cancellationToken)
         {
             //Get propper collection
-            var embeddingsRepositoryResult = await request
-                .EmbeddingsRepositoryFactory
+            var embeddingsRepositoryResult = await _embeddingsRepositoryFactory
                 .CreateRepositoryAsync(request.CollectionName);
 
             if (!embeddingsRepositoryResult.IsSuccess)

@@ -23,7 +23,7 @@ namespace Tests.Application.UnitTests
             _repoMock.Setup(r => r.DeleteEmbeddingsAsync(It.IsAny<List<Guid>>()))
                 .ReturnsAsync(Result.Success());
 
-            _handler = new DeleteEmbeddingsCommandHandler();
+            _handler = new DeleteEmbeddingsCommandHandler(_repoFactoryMock.Object);
         }
 
 
@@ -119,7 +119,6 @@ namespace Tests.Application.UnitTests
 
         private DeleteEmbeddingsCommand CreateCommand(string[]? ids = null) => new()
         {
-            EmbeddingsRepositoryFactory = _repoFactoryMock.Object,
             CollectionName = "test-collection",
             Ids = ids ?? [Guid.NewGuid().ToString()]
         };

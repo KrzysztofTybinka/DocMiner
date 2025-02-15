@@ -21,7 +21,7 @@ namespace Tests.Application.UnitTests
             _factoryMock = new Mock<IGetEmbeddingsByIdQueryHandlerFactory>();
             _queryHandlerMock = new Mock<IGetEmbeddingsByIdQueryHandler>();
 
-            _handler = new GetEmbeddingsByIdHandler();
+            _handler = new GetEmbeddingsByIdHandler(_factoryMock.Object);
         }
 
         [Fact]
@@ -36,7 +36,6 @@ namespace Tests.Application.UnitTests
             var query = new GetEmbeddingsQuery
             {
                 CollectionName = "TestCollection",
-                QueryhandlerFactory = _factoryMock.Object,
                 Ids = new[] { Guid.NewGuid().ToString() },
                 Source = "TestSource"
             };
@@ -69,7 +68,6 @@ namespace Tests.Application.UnitTests
             var query = new GetEmbeddingsQuery
             {
                 CollectionName = "TestCollection",
-                QueryhandlerFactory = _factoryMock.Object,
                 // Providing one valid Guid string.
                 Ids = [Guid.NewGuid().ToString()],
                 Source = "TestSource"
@@ -114,8 +112,7 @@ namespace Tests.Application.UnitTests
             var query = new GetEmbeddingsQuery
             {
                 CollectionName = "TestCollection",
-                QueryhandlerFactory = _factoryMock.Object,
-                Ids = new[] { id1.ToString(), id2.ToString() },
+                Ids = [id1.ToString(), id2.ToString()],
                 Source = "TestSource"
             };
 
@@ -158,7 +155,6 @@ namespace Tests.Application.UnitTests
             var queryWithNullIds = new GetEmbeddingsQuery
             {
                 CollectionName = "TestCollection",
-                QueryhandlerFactory = _factoryMock.Object,
                 Ids = null,
                 Source = "TestSource"
             };
@@ -176,8 +172,7 @@ namespace Tests.Application.UnitTests
             var queryWithEmptyIds = new GetEmbeddingsQuery
             {
                 CollectionName = "TestCollection",
-                QueryhandlerFactory = _factoryMock.Object,
-                Ids = new string[0],
+                Ids = [],
                 Source = "TestSource"
             };
 

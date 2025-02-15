@@ -1,5 +1,6 @@
 ﻿using Application.Responses;
 using Domain.Abstractions;
+using Infrastructure.Abstractions;
 using MediatR;
 using RAG.Requests;
 
@@ -8,11 +9,16 @@ namespace Application.Queries
 {
     public class GetEmbeddingsByIdHandler : IRequestHandler<GetEmbeddingsQuery, Result<List<GetEmbeddingsByIdResponse>>>
     {
+        private IGetEmbeddingsByIdQueryHandlerFactory _queryhandlerFactory { get; set; }
+        public GetEmbeddingsByIdHandler(IGetEmbeddingsByIdQueryHandlerFactory queryhandlerFactor)
+        {
+            _queryhandlerFactory = queryhandlerFactor;
+        }
+
         public async Task<Result<List<GetEmbeddingsByIdResponse>>> Handle(GetEmbeddingsQuery request, CancellationToken cancellationToken)
         {
             //Get propper collection
-            var queryhandlerResult = await request
-                .QueryhandlerFactory
+            var queryhandlerResult = await _queryhandlerFactory
                 .CreateHandlerAsync(request.CollectionName);
 
             if (!queryhandlerResult.IsSuccess)

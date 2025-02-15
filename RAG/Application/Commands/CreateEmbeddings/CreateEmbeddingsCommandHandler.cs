@@ -1,5 +1,8 @@
-﻿using Domain.Abstractions;
+﻿using Application.Abstractions;
+using Application.Commands.ProcessDocument;
+using Domain.Abstractions;
 using Domain.Embedings;
+using Infrastructure.Abstractions;
 using MediatR;
 
 
@@ -7,11 +10,24 @@ namespace Application.Commands.CreateEmbeddings
 {
     public class CreateEmbeddingsCommandHandler : IRequestHandler<CreateEmbeddingsCommand, Result>
     {
+        private ProcessDocumentCommand _processedDocumentService { get; set; }
+        private IEmbeddingGeneratorFactory _embeddingGeneratorFactory { get; set; }
+        private IEmbeddingRepositoryFactory _embeddingsRepositoryFactory { get; set; }
+
+        public CreateEmbeddingsCommandHandler(
+            ProcessDocumentCommand processedDocumentService,
+            IEmbeddingGeneratorFactory embeddingGeneratorFactory,
+            IEmbeddingRepositoryFactory embeddingsRepositoryFactory)
+        {
+            _processedDocumentService = processedDocumentService;
+            _embeddingGeneratorFactory = embeddingGeneratorFactory;
+            _embeddingsRepositoryFactory = embeddingsRepositoryFactory;
+        }
+
         public async Task<Result> Handle(CreateEmbeddingsCommand request, CancellationToken cancellationToken)
         {
             //Get propper collection
-            var embeddingsRepositoryResult = await request
-                .EmbeddingsRepositoryFactory
+            var embeddingsRepositoryResult = await _embeddingsRepositoryFactory
                 .CreateRepositoryAsync(request.CollectionName);
 
             if (!embeddingsRepositoryResult.IsSuccess)
@@ -22,7 +38,7 @@ namespace Application.Commands.CreateEmbeddings
             //Ocr the file
             var bytes = request.File.Content;
 
-            var chunksResult = await request.ProcessedDocumentService
+            var chunksResult = await _processedDocumentService
                 .CreateChunksAsync(bytes,
                     request.File.FileName,
                     request.NumberOfTokens);
@@ -31,7 +47,7 @@ namespace Application.Commands.CreateEmbeddings
                 return Result.Failure(chunksResult.Error);
 
             //Get embedding service
-            var embeddingModel = request.EmbeddingGeneratorFactory
+            var embeddingModel = _embeddingGeneratorFactory
                 .CreateEmbeddingGenerator();
 
             //Create embeddings

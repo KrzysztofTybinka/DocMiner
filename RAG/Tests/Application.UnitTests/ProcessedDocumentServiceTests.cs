@@ -1,4 +1,4 @@
-﻿using Application.Services;
+﻿using Application.Commands.ProcessDocument;
 using Domain.Abstractions;
 using Domain.ProcessedDocument;
 using Moq;
@@ -9,11 +9,11 @@ namespace Tests.Application.UnitTests
     public class ProcessedDocumentServiceTests
     {
         private readonly Mock<IProcessedDocumentGenerator> _generatorMock = new();
-        private readonly ProcessedDocumentService _service;
+        private readonly ProcessDocumentCommand _service;
 
         public ProcessedDocumentServiceTests()
         {
-            _service = new ProcessedDocumentService(_generatorMock.Object);
+            _service = new ProcessDocumentCommand(_generatorMock.Object);
         }
 
         [Fact]

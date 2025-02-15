@@ -1,5 +1,5 @@
 ﻿using Application.Abstractions;
-using Application.Services;
+using Application.Commands.ProcessDocument;
 using Domain.ProcessedDocument;
 using Infrastructure.Abstractions;
 using Infrastructure.Repositories.ChromaCollection;
@@ -11,7 +11,7 @@ namespace RAG.Requests
     {
         public IFormFile File {  get; set; }
         public string CollectionName { get; set; }
-        public ProcessedDocumentService ProcessedDocumentService { get; set; }
+        public ProcessDocumentCommand ProcessedDocumentService { get; set; }
         public IEmbeddingGeneratorFactory EmbeddingGeneratorFactory { get; set; }
         public IEmbeddingRepositoryFactory EmbeddingsRepositoryFactory { get; set; }
         public int NumberOfTokens { get; set; } = 50;

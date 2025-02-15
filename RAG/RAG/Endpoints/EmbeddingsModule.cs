@@ -26,9 +26,6 @@ namespace RAG.Endpoints
                 {
                     File = fileData,
                     CollectionName = request.CollectionName,
-                    ProcessedDocumentService = request.ProcessedDocumentService,
-                    EmbeddingGeneratorFactory = request.EmbeddingGeneratorFactory,
-                    EmbeddingsRepositoryFactory = request.EmbeddingsRepositoryFactory,
                     NumberOfTokens = request.NumberOfTokens
                 };
 

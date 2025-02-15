@@ -24,7 +24,7 @@ namespace Tests.Application.UnitTests
             _mockFactory.Setup(f => f.CreateAnswearGenerator(It.IsAny<Dictionary<string, object>>()))
                         .Returns(_mockGenerator.Object);
 
-            _handler = new GenerateResponseCommandHandler();
+            _handler = new GenerateResponseCommandHandler(_mockFactory.Object);
         }
 
         [Fact]
@@ -36,7 +36,6 @@ namespace Tests.Application.UnitTests
                 Question = "",
                 RetrievedData = "Some data",
                 PromptWrapper = "Wrapper with {retrievedData} and {question}",
-                AnswearGeneratorFactory = _mockFactory.Object,
                 Parameters = new Dictionary<string, object>()
             };
 
@@ -60,7 +59,6 @@ namespace Tests.Application.UnitTests
                 Question = "What is your name?",
                 RetrievedData = "Some data",
                 PromptWrapper = "Invalid prompt wrapper", // Missing both "{retrievedData}" and "{question}"
-                AnswearGeneratorFactory = _mockFactory.Object,
                 Parameters = new Dictionary<string, object>()
             };
 
@@ -85,7 +83,6 @@ namespace Tests.Application.UnitTests
                 Question = "What is your name?",
                 RetrievedData = "User data",
                 PromptWrapper = "Wrapper: {retrievedData} | {question}",
-                AnswearGeneratorFactory = _mockFactory.Object,
                 Parameters = new Dictionary<string, object>()
             };
 
@@ -114,7 +111,6 @@ namespace Tests.Application.UnitTests
                 Question = "What is your name?",
                 RetrievedData = "User data",
                 PromptWrapper = "Wrapper: {retrievedData} | {question}",
-                AnswearGeneratorFactory = _mockFactory.Object,
                 Parameters = new Dictionary<string, object>()
             };
 

@@ -16,7 +16,7 @@ namespace Tests.Application.UnitTests
         private readonly Mock<IGetSimilarEmbeddingsQueryHandler> _queryHandlerMock;
         private readonly Mock<IEmbeddingGeneratorFactory> _embeddingGeneratorFactoryMock;
         private readonly Mock<IEmbeddingGenerator> _embeddingGeneratorMock;
-        // The EmbeddingsRepositoryFactory is not used in this handler so we can ignore it.
+
         private readonly GetSimilarEmbeddingsHandler _handler;
 
         public GetSimilarEmbeddingsHandlerTests()
@@ -26,7 +26,9 @@ namespace Tests.Application.UnitTests
             _embeddingGeneratorFactoryMock = new Mock<IEmbeddingGeneratorFactory>();
             _embeddingGeneratorMock = new Mock<IEmbeddingGenerator>();
 
-            _handler = new GetSimilarEmbeddingsHandler();
+            _handler = new GetSimilarEmbeddingsHandler(
+                _queryHandlerFactoryMock.Object,
+                _embeddingGeneratorFactoryMock.Object);
         }
 
         [Fact]
@@ -44,10 +46,6 @@ namespace Tests.Application.UnitTests
                 Nresults = 5,
                 Source = "TestSource",
                 MaxDistance = 0.5,
-                QueryHandlerFactory = _queryHandlerFactoryMock.Object,
-                EmbeddingGeneratorFactory = _embeddingGeneratorFactoryMock.Object,
-                // EmbeddingsRepositoryFactory is not used in this handler.
-                EmbeddingsRepositoryFactory = Mock.Of<IEmbeddingRepositoryFactory>()
             };
 
             // Act
@@ -85,9 +83,6 @@ namespace Tests.Application.UnitTests
                 Nresults = 5,
                 Source = "TestSource",
                 MaxDistance = 0.5,
-                QueryHandlerFactory = _queryHandlerFactoryMock.Object,
-                EmbeddingGeneratorFactory = _embeddingGeneratorFactoryMock.Object,
-                EmbeddingsRepositoryFactory = Mock.Of<IEmbeddingRepositoryFactory>()
             };
 
             // Act
@@ -133,9 +128,6 @@ namespace Tests.Application.UnitTests
                 Nresults = 5,
                 Source = "TestSource",
                 MaxDistance = 0.5,
-                QueryHandlerFactory = _queryHandlerFactoryMock.Object,
-                EmbeddingGeneratorFactory = _embeddingGeneratorFactoryMock.Object,
-                EmbeddingsRepositoryFactory = Mock.Of<IEmbeddingRepositoryFactory>()
             };
 
             // Act
@@ -186,9 +178,6 @@ namespace Tests.Application.UnitTests
                 Nresults = 5,
                 Source = "TestSource",
                 MaxDistance = 0.5,
-                QueryHandlerFactory = _queryHandlerFactoryMock.Object,
-                EmbeddingGeneratorFactory = _embeddingGeneratorFactoryMock.Object,
-                EmbeddingsRepositoryFactory = Mock.Of<IEmbeddingRepositoryFactory>()
             };
 
             // Act
